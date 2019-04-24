@@ -3,8 +3,10 @@ import logo from './logo.svg';
 import './App.css';
 import CellMeasurer from "./CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "./CellMeasurer/CellMeasurerCache";
+import TheirMessage from "./Message/TheirMessage";
 
 let dataList = [];
+let message = '';
 
 const DATA_NUMBER = 20;
 
@@ -24,7 +26,9 @@ class App extends React.Component {
 
   async componentDidMount(): void {
     const data = await this.getData();
+    const msg = await this.getRandomSentence();
     data.forEach(item => dataList.push(item));
+    message = msg;
     this.setState({ isLoading: false });
   }
 
@@ -37,14 +41,25 @@ class App extends React.Component {
       .catch(error => console.log(error));
   };
 
-  _renderCell = (item, index) => {
-    const { login: { uuid }, picture: { thumbnail } } = item;
-    console.log(index);
+  async getRandomSentence() {
+    return fetch('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1')
+      .then(response => response.json())
+      .then(data => {
+        return data
+      })
+      .catch(error => console.log(error));
+  }
+
+  _renderCell = (item) => {
+    const { name, login: { uuid }, registered: {date}, picture: { thumbnail } } = item;
+    const displayName = name.first + " " + name.last;
     return (
       <CellMeasurer cache={this._cache} id={uuid}>
-        <div>
-          <img src={thumbnail} alt="img" className='App-logo'/>
-        </div>
+        <TheirMessage id={uuid}
+                      userAvatarUrl={thumbnail}
+                      userName={displayName}
+                      messageContent={message}
+                      sentTime={new Date(date).getDate()}/>
       </CellMeasurer>
 
     )
@@ -54,7 +69,7 @@ class App extends React.Component {
     const { name } = dataList;
     return (
       // dataList.map(() => <p>{name}</p>)
-      dataList.map((item, index) => this._renderCell(item, index))
+      dataList.map((item) => this._renderCell(item))
     )
   };
 
