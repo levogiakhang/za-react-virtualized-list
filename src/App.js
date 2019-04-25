@@ -52,7 +52,7 @@ class App extends React.Component {
   }
 
   _renderCell = (item, index) => {
-    const { name, login: { uuid }, registered: {date}, picture: { thumbnail } } = item;
+    const { name, login: { uuid }, registered: { date }, picture: { thumbnail } } = item;
     const displayName = name.first + " " + name.last;
     return (
       <CellMeasurer cache={this._cache} id={uuid}>
@@ -60,7 +60,8 @@ class App extends React.Component {
                  userAvatarUrl={thumbnail}
                  userName={displayName}
                  messageContent={message[index]}
-                 sentTime={date}/>
+                 sentTime={date}
+                 isMine={index % 2 === 0}/>
       </CellMeasurer>
 
     )
