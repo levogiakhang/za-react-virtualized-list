@@ -1,12 +1,11 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import CellMeasurer from "./CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "./CellMeasurer/CellMeasurerCache";
-import TheirMessage from "./Message/TheirMessage";
+import Message from "./Message/Message";
 
 let dataList = [];
-let message = '';
+let message = [];
 
 const DATA_NUMBER = 20;
 
@@ -26,9 +25,11 @@ class App extends React.Component {
 
   async componentDidMount(): void {
     const data = await this.getData();
-    const msg = await this.getRandomSentence();
     data.forEach(item => dataList.push(item));
-    message = msg;
+    for (let i = 0; i < DATA_NUMBER; i++) {
+      const msg = await this.getRandomSentence();
+      message.push(msg);
+    }
     this.setState({ isLoading: false });
   }
 
@@ -50,16 +51,16 @@ class App extends React.Component {
       .catch(error => console.log(error));
   }
 
-  _renderCell = (item) => {
+  _renderCell = (item, index) => {
     const { name, login: { uuid }, registered: {date}, picture: { thumbnail } } = item;
     const displayName = name.first + " " + name.last;
     return (
       <CellMeasurer cache={this._cache} id={uuid}>
-        <TheirMessage id={uuid}
-                      userAvatarUrl={thumbnail}
-                      userName={displayName}
-                      messageContent={message}
-                      sentTime={new Date(date).getDate()}/>
+        <Message id={uuid}
+                 userAvatarUrl={thumbnail}
+                 userName={displayName}
+                 messageContent={message[index]}
+                 sentTime={date}/>
       </CellMeasurer>
 
     )
@@ -69,7 +70,7 @@ class App extends React.Component {
     const { name } = dataList;
     return (
       // dataList.map(() => <p>{name}</p>)
-      dataList.map((item) => this._renderCell(item))
+      dataList.map((item, index) => this._renderCell(item, index))
     )
   };
 
