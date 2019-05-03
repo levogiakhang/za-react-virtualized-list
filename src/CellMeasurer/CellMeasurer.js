@@ -8,7 +8,14 @@ type Props = {
   cache: CellMeasurerCache,
   children: React.Element<*>,
 }
+
 export default class CellMeasurer extends React.PureComponent<Props> {
+  componentDidMount() {
+    const { children } = this.props;
+    children.addEventListener('onresize', function(){
+    });
+  }
+
   render() {
     const { children } = this.props;
     return children;
@@ -18,4 +25,6 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     const { cache } = this.props;
 
   }
+
+
 }
