@@ -3,7 +3,7 @@
 export const DEFAULT_HEIGHT = 100;
 
 type CellMeasurerCacheParams = {
-  defaultHeight: number,
+  defaultHeight?: number,
   height: number,
 };
 

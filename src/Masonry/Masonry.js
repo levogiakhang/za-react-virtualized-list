@@ -7,6 +7,7 @@ type Props = {
   id: ?string,
   style: mixed,
   width: number,
+  overscan: number,
 };
 
 class Masonry extends React.PureComponent<Props> {
