@@ -1,6 +1,5 @@
 /** @flow */
 import * as React from 'react';
-import { findDOMNode } from 'react-dom';
 import CellMeasurerCache from "./CellMeasurerCache";
 
 type Props = {
@@ -12,8 +11,6 @@ type Props = {
 export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     const { children } = this.props;
-    children.addEventListener('onresize', function(){
-    });
   }
 
   render() {
