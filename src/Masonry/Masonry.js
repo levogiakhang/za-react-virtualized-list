@@ -1,13 +1,16 @@
 // @flow
 
 import React from 'react';
+import type { CellRenderer } from "../Utils/types";
 
 type Props = {
-  className: string,
-  id: ?string,
-  style: mixed,
-  width: number,
-  overscan: number,
+  className?: string,
+  id?: ?string,
+  style?: mixed,
+  height: number,
+  overscan?: number,
+  cellRenderer: CellRenderer,
+  cellCount: number,
 };
 
 class Masonry extends React.PureComponent<Props> {
@@ -24,13 +27,26 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   render() {
-    const { className, id, style } = this.props;
-    const estimateTotalHeight = this._getEstimatedTotalHeight();
+    const { className, id, height, style, isScrolling, cellRenderer, cellCount } = this.props;
+    const estimateTotalHeight = this._getEstimatedTotalHeight(cellCount, 100);
 
     const children = [];
 
-    this._pushChildrenContent(children);
 
+    for (let i = 0; i <= cellCount - 1; i++)
+      children.push( () => {
+        cellRenderer({
+          id,
+          isScrolling,
+          style: {
+            height: 120,
+            position: 'absolute',
+            width: '100%',
+          },
+        })}
+      );
+
+    console.log(children);
     return (
       <div className={className}
            id={id}
@@ -65,13 +81,20 @@ class Masonry extends React.PureComponent<Props> {
 
   }
 
-  _getEstimatedTotalHeight() {
-
+  _getEstimatedTotalHeight(cellCount: number, defaultCellHeight: number): number {
+    return cellCount * defaultCellHeight;
   }
 
-  _pushChildrenContent(children: []) {
-
-  }
+  // _pushChildrenContent(children: [], cellRenderer, cellCount) {
+  //   for (let i = 0; i <= cellCount - 1; i++)
+  //     children.push(
+  //       cellRenderer({
+  //         index,
+  //         isScrolling,
+  //         style: {},
+  //       }),
+  //     );
+  // }
 }
 
 export default Masonry;

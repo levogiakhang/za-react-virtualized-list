@@ -4,6 +4,7 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
 import { ListMessageExample } from '../Utils/ListMessageExample';
+import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 let message = ListMessageExample;
@@ -18,6 +19,7 @@ class DemoList extends React.PureComponent {
     };
 
     this.getData = this.getData.bind(this);
+    this._renderCell = this._renderCell.bind(this);
     this._cache = new CellMeasurerCache({
       defaultHeight: 250,
       height: 300,
@@ -48,11 +50,11 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
-  _renderCell = (item, index) => {
+  _renderCell({ item, index }) {
     const { name, login: { uuid }, registered: { date }, picture: { thumbnail } } = item;
     const displayName = name.first + " " + name.last;
     return (
-      <CellMeasurer cache={this._cache} id={uuid}>
+      <CellMeasurer cache={this._cache} id={uuid} position={{ top: 1, left: 1 }}>
         <Message id={uuid}
                  userAvatarUrl={thumbnail}
                  userName={displayName}
@@ -68,7 +70,10 @@ class DemoList extends React.PureComponent {
     const { name } = dataList;
     return (
       // dataList.map(() => <p>{name}</p>)
-      dataList.map((item, index) => this._renderCell(item, index))
+      // dataList.map((item, index) => this._renderCell(item, index))
+      <Masonry height={500}
+               cellCount={dataList.length}
+               cellRenderer={this._renderCell}/>
     )
   };
 
