@@ -73,7 +73,9 @@ class DemoList extends React.PureComponent {
       // dataList.map((item, index) => this._renderCell(item, index))
       <Masonry height={500}
                cellCount={dataList.length}
-               cellRenderer={this._renderCell}/>
+               cellRenderer={this._renderCell}
+               cellMeasurerCache={this._cache}
+               preRenderCellCount={5}/>
     )
   };
 

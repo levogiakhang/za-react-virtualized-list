@@ -2,15 +2,19 @@
 
 import React from 'react';
 import type { CellRenderer } from "../Utils/types";
+import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
+import Message from "../Message/Message";
+import CellMeasurer from "../CellMeasurer/CellMeasurer";
 
 type Props = {
   className?: string,
   id?: ?string,
   style?: mixed,
   height: number,
-  overscan?: number,
+  preRenderCellCount: number,
   cellRenderer: CellRenderer,
   cellCount: number,
+  cellMeasurerCache: CellMeasurerCache
 };
 
 class Masonry extends React.PureComponent<Props> {
@@ -19,7 +23,9 @@ class Masonry extends React.PureComponent<Props> {
 
     this.state = {
       isScrolling: false
-    }
+    };
+
+    this._calculateBatchSize = this._calculateBatchSize.bind(this);
   }
 
   componentDidMount() {
@@ -27,26 +33,53 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   render() {
-    const { className, id, height, style, isScrolling, cellRenderer, cellCount } = this.props;
+    const {
+      className,
+      id,
+      height,
+      style,
+      isScrolling,
+      cellRenderer,
+      preRenderCellCount,
+      cellCount,
+      cellMeasurerCache
+    } = this.props;
     const estimateTotalHeight = this._getEstimatedTotalHeight(cellCount, 100);
 
     const children = [];
 
+    const numOfCellOnBatch =
+      this._calculateBatchSize(preRenderCellCount, cellMeasurerCache.defaultHeight, height)
+      / cellMeasurerCache.defaultHeight;
 
-    for (let i = 0; i <= cellCount - 1; i++)
-      children.push( () => {
-        cellRenderer({
-          id,
-          isScrolling,
-          style: {
-            height: 120,
-            position: 'absolute',
-            width: '100%',
-          },
-        })}
-      );
+    // for (let i = 0; i <= numOfCellOnBatch - 1; i++)
+    //   children.push( () => {
+    //     cellRenderer({
+    //       id,
+    //       isScrolling,
+    //       style: {
+    //         height: 120,
+    //         position: 'absolute',
+    //         width: '100%',
+    //       },
+    //     })}
+    //   );
 
-    console.log(children);
+    for (let i = 0; i <= numOfCellOnBatch - 1; i++) {
+      const top = 120 * i;
+      const left = 0;
+      children.push(
+        <CellMeasurer cache={new CellMeasurerCache({ defaultHeight: 100 })} id={i} position={{ top: top, left: left }}>
+          <Message id={i}
+                   userAvatarUrl={'https://randomuser.me/api/portraits/thumb/women/60.jpg'}
+                   userName={'vanessa'}
+                   messageContent={'Bacon ipsum dolor amet short loin sirloin meatloaf fatback, chuck turducken filet mignon kevin pork chop.'}
+                   sentTime={'2007-04-07T04:21:47Z'}
+                   isMine={true}/>
+        </CellMeasurer>
+      )
+    }
+
     return (
       <div className={className}
            id={id}
@@ -83,6 +116,11 @@ class Masonry extends React.PureComponent<Props> {
 
   _getEstimatedTotalHeight(cellCount: number, defaultCellHeight: number): number {
     return cellCount * defaultCellHeight;
+  }
+
+  _calculateBatchSize(preRenderCellCount: number, cellHeight: number, masonryHeight: number): number {
+    const overScanByPixel = preRenderCellCount * cellHeight;
+    return 2 * overScanByPixel + masonryHeight;
   }
 
   // _pushChildrenContent(children: [], cellRenderer, cellCount) {
