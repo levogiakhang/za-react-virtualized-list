@@ -117,6 +117,14 @@ class Masonry extends React.PureComponent<Props> {
     console.log(document.getElementById(this.props.id).scrollTop);
   }
 
+  _onResize() {
+
+  }
+
+  _onUpdate() {
+    
+  }
+
   _getEstimatedTotalHeight(cellCount: number, defaultCellHeight: number): number {
     return cellCount * defaultCellHeight;
   }
