@@ -1,7 +1,7 @@
 /** @flow */
 import * as React from 'react';
 import CellMeasurerCache from "./CellMeasurerCache";
-import { Position } from "../Utils/types";
+import { Position } from "../utils/types";
 
 type Props = {
   id: string,
@@ -17,6 +17,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
   _position: Position = { top: this.props.position.top, left: this.props.position.left };
   _cellHeight: number = this.props.cache.height;
+  _id: string = this.props.id;
 
   componentDidMount() {
     const { children } = this.props;
@@ -41,11 +42,15 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     return this._cellHeight;
   }
 
-  get getPosition() {
+  get getCellPosition() {
     return this._position;
   }
 
-  set setPosition(position: Position) {
+  set setCellPosition(position: Position) {
     this._position = position;
+  }
+
+  get cellId(){
+    return this._id;
   }
 }

@@ -3,7 +3,7 @@ import './css/DemoList.css';
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
-import { ListMessageExample } from '../Utils/ListMessageExample';
+import { ListMessageExample } from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
@@ -72,6 +72,7 @@ class DemoList extends React.PureComponent {
       // dataList.map(() => <p>{name}</p>)
       // dataList.map((item, index) => this._renderCell(item, index))
       <Masonry height={500}
+               id={'khang'}
                cellCount={dataList.length}
                cellRenderer={this._renderCell}
                cellMeasurerCache={this._cache}

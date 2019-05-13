@@ -1,10 +1,11 @@
 // @flow
 
 import React from 'react';
-import type { CellRenderer } from "../Utils/types";
+import type { CellRenderer } from "../utils/types";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
+import * as ReactDOM from "react-dom";
 
 type Props = {
   className?: string,
@@ -26,10 +27,11 @@ class Masonry extends React.PureComponent<Props> {
     };
 
     this._calculateBatchSize = this._calculateBatchSize.bind(this);
+    this._onScroll = this._onScroll.bind(this);
   }
 
   componentDidMount() {
-
+    ReactDOM.findDOMNode(this).addEventListener('scroll', this._onScroll);
   }
 
   render() {
@@ -66,7 +68,8 @@ class Masonry extends React.PureComponent<Props> {
     //   );
 
     for (let i = 0; i <= numOfCellOnBatch - 1; i++) {
-      const top = 120 * i;
+      // TODO: store all cells to a map.
+      const top = 120 * i; // find in maps the cell before in batch size
       const left = 0;
       children.push(
         <CellMeasurer cache={new CellMeasurerCache({ defaultHeight: 100 })} id={i} position={{ top: top, left: left }}>
@@ -111,7 +114,7 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _onScroll() {
-
+    console.log(document.getElementById(this.props.id).scrollTop);
   }
 
   _getEstimatedTotalHeight(cellCount: number, defaultCellHeight: number): number {
