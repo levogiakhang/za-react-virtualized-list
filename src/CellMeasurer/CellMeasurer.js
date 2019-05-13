@@ -28,7 +28,11 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
   render() {
     const { children } = this.props;
-    return children;
+    return (
+      <div style={{position: 'absolute', top: this._position.top, left: this._position.left}}>
+        {children}
+      </div>
+    );
   }
 
   get cellHeight() {
