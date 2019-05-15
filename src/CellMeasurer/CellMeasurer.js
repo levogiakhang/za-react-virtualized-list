@@ -2,6 +2,7 @@
 import * as React from 'react';
 import CellMeasurerCache from "./CellMeasurerCache";
 import { Position } from "../utils/types";
+import * as ReactDOM from "react-dom";
 
 type Props = {
   id: string,
@@ -16,11 +17,14 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   }
 
   _position: Position = { top: this.props.position.top, left: this.props.position.left };
-  _cellHeight: number = this.props.cache.height;
+  _cellHeight: number;
   _id: string = this.props.id;
 
   componentDidMount() {
-    const { children } = this.props;
+    // const { children } = this.props;
+    // const cell = ReactDOM.findDOMNode(this);
+    // cell.addEventListener('resize', () => {console.log('re')});
+    // console.log(document.getElementById(this._id).getBoundingClientRect());
   }
 
   onResize() {
@@ -30,10 +34,21 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   render() {
     const { children } = this.props;
     return (
-      <div style={{position: 'absolute', top: this._position.top, left: this._position.left}}>
+      <div id={this._id}
+           ref={"abc"}
+           style={{
+             position: 'absolute',
+             top: this._position.top,
+             left: this._position.left,
+             width: '100%'}}>
         {children}
       </div>
     );
+  }
+
+  componentDidUpdate() {
+    this._cellHeight = document.getElementById(this._id).getBoundingClientRect();
+    console.log(this._cellHeight);
   }
 
   get cellHeight() {
@@ -50,7 +65,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     this._position = position;
   }
 
-  get cellId(){
+  get cellId() {
     return this._id;
   }
 }

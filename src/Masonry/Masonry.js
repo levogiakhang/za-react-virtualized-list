@@ -6,6 +6,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
+import PositionCache from './PositionCache';
 
 type Props = {
   className?: string,
@@ -28,10 +29,18 @@ class Masonry extends React.PureComponent<Props> {
 
     this._calculateBatchSize = this._calculateBatchSize.bind(this);
     this._onScroll = this._onScroll.bind(this);
+    this._onResize = this._onResize.bind(this);
   }
 
   componentDidMount() {
-    ReactDOM.findDOMNode(this).addEventListener('scroll', this._onScroll);
+    const masonry =ReactDOM.findDOMNode(this);
+    masonry.addEventListener('scroll', this._onScroll);
+    masonry.addEventListener('resize', this._onResize);
+  }
+
+  recomputeCellPositions() {
+    this._positionCache = new PositionCache();
+    this.forceUpdate();
   }
 
   render() {
@@ -72,7 +81,10 @@ class Masonry extends React.PureComponent<Props> {
       const top = 120 * i; // find in maps the cell before in batch size
       const left = 0;
       children.push(
-        <CellMeasurer cache={new CellMeasurerCache({ defaultHeight: 100 })} id={i} position={{ top: top, left: left }}>
+        <CellMeasurer cache={new CellMeasurerCache({ defaultHeight: 100 })}
+                      key={i}
+                      id={i}
+                      position={{ top: top, left: left }}>
           <Message id={i}
                    userAvatarUrl={'https://randomuser.me/api/portraits/thumb/women/60.jpg'}
                    userName={'vanessa'}
@@ -88,6 +100,7 @@ class Masonry extends React.PureComponent<Props> {
            id={id}
            onScroll={this._onScroll}
            style={{
+             backgroundColor: 'cornflowerblue',
              boxSizing: 'border-box',
              overflowX: 'hidden',
              overflowY: estimateTotalHeight < height ? 'hidden' : 'auto',
@@ -114,15 +127,17 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _onScroll() {
-    console.log(document.getElementById(this.props.id).scrollTop);
+    // this.forceUpdate();
+    // console.log(document.getElementById(this.props.id).scrollTop);
   }
 
   _onResize() {
-
+    // this.forceUpdate();
+    console.log('resize');
   }
 
   _onUpdate() {
-    
+
   }
 
   _getEstimatedTotalHeight(cellCount: number, defaultCellHeight: number): number {
