@@ -196,7 +196,7 @@ function dispatchBsearchLE(a, y, c, l, h) {
 }
 
 function _EQA(a, l, h, y) {
-  l - 1;
+  // l - 1;
   while (l <= h) {
     var m = (l + h) >>> 1,
       x = a[m];
@@ -211,7 +211,7 @@ function _EQA(a, l, h, y) {
   return -1;
 }
 function _EQP(a, l, h, y, c) {
-  l - 1;
+  // l - 1;
   while (l <= h) {
     var m = (l + h) >>> 1,
       x = a[m];
