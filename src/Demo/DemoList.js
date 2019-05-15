@@ -67,7 +67,7 @@ class DemoList extends React.PureComponent {
   };
 
   _renderList = (dataList) => {
-    const { name } = dataList;
+    // const { name } = dataList;
     return (
       // dataList.map(() => <p>{name}</p>)
       // dataList.map((item, index) => this._renderCell(item, index))

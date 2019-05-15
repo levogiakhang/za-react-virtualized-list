@@ -19,7 +19,7 @@ export default class Message extends React.PureComponent<MessageProps> {
   };
 
   render() {
-    const { id, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
+    const { userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
     return (
       isMine ?
         <div className="row">
