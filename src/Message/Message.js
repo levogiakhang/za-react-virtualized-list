@@ -6,6 +6,16 @@ import './css/TheirMessage.css'
 import './css/MyMessage.css'
 
 export default class Message extends React.PureComponent<MessageProps> {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isExpanded: false,
+    };
+
+    this._onClick = this._onClick.bind(this);
+  }
+
   _getDisplayTime = (time): string => {
     let minutes = time.getMinutes();
     if (time.getMinutes() < 10) {
@@ -18,8 +28,16 @@ export default class Message extends React.PureComponent<MessageProps> {
     return hours + ':' + minutes;
   };
 
+  _onClick() {
+    const { isExpanded } = this.state;
+    isExpanded ?
+      this.setState({ isExpanded: false }) :
+      this.setState({ isExpanded: true })
+  }
+
   render() {
     const { userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
+    const { isExpanded } = this.state;
     return (
       isMine ?
         <div className="row">
@@ -52,7 +70,7 @@ export default class Message extends React.PureComponent<MessageProps> {
 
         :
 
-        <div className="their-message-container">
+        <div className={isExpanded ? "expand-height" : "their-message-container"}>
           {/* AVATAR VIEW */}
           <div className="their-message-avatar-container">
             <div className="their-message-avatar-border">
@@ -75,6 +93,15 @@ export default class Message extends React.PureComponent<MessageProps> {
             <div className="their-message-content-sent-time">
               <p>{this._getDisplayTime(new Date(sentTime))}</p>
             </div>
+          </div>
+
+          <div className={"button-container"}>
+            <button className={"red"} onClick={this._onClick}>
+              {isExpanded ?
+                "Minimize" :
+                "Expand"
+              }
+            </button>
           </div>
         </div>
     );

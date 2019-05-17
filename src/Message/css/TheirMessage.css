@@ -12,6 +12,16 @@ p {
     margin: 0.5rem 0.1rem;
 }
 
+.expand-height {
+    max-width: 80%;
+    min-width: 200px;
+    min-height: 150px;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    margin: 0.5rem 0.1rem;
+}
+
 .their-message-avatar-container {
     width: 56px;
     display: flex;
@@ -40,6 +50,7 @@ p {
 
 .their-message-content-container {
     background-color: azure;
+    max-width: 1200px;
     padding: 10px;
     border-radius: 10px;
 }
@@ -68,4 +79,24 @@ p {
 .their-message-content-sent-time > p {
     color: gray;
     font-size: 1rem;
+}
+
+.button-container {
+    padding-left: 10px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+button {
+    color: white;
+    background-color: #DD4B39;
+    border: 1px #DD4B39 solid;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 9pt;
+    outline: none;
+    max-height: 30px;
+    min-width: 80px;
 }
