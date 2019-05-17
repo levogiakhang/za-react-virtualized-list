@@ -2,6 +2,7 @@ export type CellRenderer = (params: {|
   index: number,
   isScrolling: boolean,
   style: mixed,
+  position: Position
 |}) => mixed;
 
 export type Position = {

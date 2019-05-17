@@ -24,7 +24,8 @@ class Masonry extends React.PureComponent<Props> {
     super(props);
 
     this.state = {
-      isScrolling: false
+      isScrolling: false,
+      scrollTop: 0,
     };
 
     this._renderedCellMaps = new Map();
@@ -80,25 +81,22 @@ class Masonry extends React.PureComponent<Props> {
     //     })}
     //   );
 
+    if (document.getElementById(id) !== null) {
+      console.log(this.state.scrollTop);
+    }
+
     for (let i = 0; i <= numOfCellOnBatch - 1; i++) {
       // TODO: store all cells to a map.
       const top = 120 * i; // find in maps the cell before in batch size
       const left = 0;
+
       children.push(
         cellRenderer({
-          item: {
-            name: {
-              "title":"mr",
-              "first":"Khang",
-              "last":"Le"
-            },
-            login: { uuid: '123' },
-            registered: { date: '2007-04-07T04:21:47Z' },
-            picture: { thumbnail: 'https://randomuser.me/api/portraits/thumb/women/60.jpg' }
-          },
-          index: 1,
-          top: top,
-          left: left
+          index: i,
+          position: {
+            top: top,
+            left: left
+          }
         })
       )
     }
@@ -135,6 +133,7 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _onScroll() {
+    // this.setState({scrollTop: document.getElementById(this.props.id).scrollTop});
     // this.forceUpdate();
     // console.log(document.getElementById(this.props.id).scrollTop);
   }
