@@ -27,13 +27,16 @@ class Masonry extends React.PureComponent<Props> {
       isScrolling: false
     };
 
+    this._renderedCellMaps = new Map();
+
     this._calculateBatchSize = this._calculateBatchSize.bind(this);
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
+    this._updateRenderedCellsMap = this._updateRenderedCellsMap.bind(this);
   }
 
   componentDidMount() {
-    const masonry =ReactDOM.findDOMNode(this);
+    const masonry = ReactDOM.findDOMNode(this);
     masonry.addEventListener('scroll', this._onScroll);
     masonry.addEventListener('resize', this._onResize);
   }
@@ -55,6 +58,7 @@ class Masonry extends React.PureComponent<Props> {
       cellCount,
       cellMeasurerCache
     } = this.props;
+
     const estimateTotalHeight = this._getEstimatedTotalHeight(cellCount, 100);
 
     const children = [];
@@ -81,17 +85,21 @@ class Masonry extends React.PureComponent<Props> {
       const top = 120 * i; // find in maps the cell before in batch size
       const left = 0;
       children.push(
-        <CellMeasurer cache={new CellMeasurerCache({ defaultHeight: 100 })}
-                      key={i}
-                      id={i}
-                      position={{ top: top, left: left }}>
-          <Message id={i}
-                   userAvatarUrl={'https://randomuser.me/api/portraits/thumb/women/60.jpg'}
-                   userName={'vanessa'}
-                   messageContent={'Bacon ipsum dolor amet short loin sirloin meatloaf fatback, chuck turducken filet mignon kevin pork chop.'}
-                   sentTime={'2007-04-07T04:21:47Z'}
-                   isMine={true}/>
-        </CellMeasurer>
+        cellRenderer({
+          item: {
+            name: {
+              "title":"mr",
+              "first":"Khang",
+              "last":"Le"
+            },
+            login: { uuid: '123' },
+            registered: { date: '2007-04-07T04:21:47Z' },
+            picture: { thumbnail: 'https://randomuser.me/api/portraits/thumb/women/60.jpg' }
+          },
+          index: 1,
+          top: top,
+          left: left
+        })
       )
     }
 
@@ -136,7 +144,11 @@ class Masonry extends React.PureComponent<Props> {
     console.log('resize');
   }
 
-  _onUpdate() {
+  _onUpdate(key: any) {
+
+  }
+
+  _updateRenderedCellsMap() {
 
   }
 

@@ -50,11 +50,16 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
-  _renderCell({ item, index }) {
-    const { name, login: { uuid }, registered: { date }, picture: { thumbnail } } = item;
+  _renderCell({ item, index, top, left }) {
+    const {
+      name,
+      login: { uuid },
+      registered: { date },
+      picture: { thumbnail }
+    } = item;
     const displayName = name.first + " " + name.last;
     return (
-      <CellMeasurer cache={this._cache} id={uuid} position={{ top: 1, left: 1 }}>
+      <CellMeasurer cache={this._cache} id={uuid} position={{ top: top, left: left }}>
         <Message id={uuid}
                  userAvatarUrl={thumbnail}
                  userName={displayName}
