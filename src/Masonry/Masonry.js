@@ -1,9 +1,7 @@
 // @flow
 
 import React from 'react';
-import type { CellRenderer } from "../utils/types";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
-import Message from "../Message/Message";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
@@ -14,8 +12,7 @@ type Props = {
   style?: mixed,
   height: number,
   preRenderCellCount: number,
-  cellRenderer: CellRenderer,
-  cellCount: number,
+  data: any,
   cellMeasurerCache: CellMeasurerCache
 };
 
@@ -28,7 +25,10 @@ class Masonry extends React.PureComponent<Props> {
       scrollTop: 0,
     };
 
+    // Map lưu trữ height của những cell đã đc render
     this._renderedCellMaps = new Map();
+
+    this._masonry = '';
 
     this._calculateBatchSize = this._calculateBatchSize.bind(this);
     this._onScroll = this._onScroll.bind(this);
@@ -37,9 +37,14 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   componentDidMount() {
-    const masonry = ReactDOM.findDOMNode(this);
-    masonry.addEventListener('scroll', this._onScroll);
-    masonry.addEventListener('resize', this._onResize);
+    this._masonry = ReactDOM.findDOMNode(this);
+    this._masonry.addEventListener('scroll', this._onScroll);
+    this._masonry.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    this._masonry.removeEventListener('scroll', this._onScroll);
+    this._masonry.removeEventListener('resize', this._onResize);
   }
 
   recomputeCellPositions() {
@@ -54,13 +59,14 @@ class Masonry extends React.PureComponent<Props> {
       height,
       style,
       isScrolling,
-      cellRenderer,
       preRenderCellCount,
-      cellCount,
+      data,
       cellMeasurerCache
     } = this.props;
 
-    const estimateTotalHeight = this._getEstimatedTotalHeight(cellCount, 100);
+    const { scrollTop } = this.state;
+
+    const estimateTotalHeight = this._getEstimatedTotalHeight(data.length, cellMeasurerCache.defaultHeight);
 
     const children = [];
 
@@ -68,36 +74,24 @@ class Masonry extends React.PureComponent<Props> {
       this._calculateBatchSize(preRenderCellCount, cellMeasurerCache.defaultHeight, height)
       / cellMeasurerCache.defaultHeight;
 
-    // for (let i = 0; i <= numOfCellOnBatch - 1; i++)
-    //   children.push( () => {
-    //     cellRenderer({
-    //       id,
-    //       isScrolling,
-    //       style: {
-    //         height: 120,
-    //         position: 'absolute',
-    //         width: '100%',
-    //       },
-    //     })}
-    //   );
 
     if (document.getElementById(id) !== null) {
-      console.log(this.state.scrollTop);
+      // console.log(this.state.scrollTop);
     }
+
+    console.log(scrollTop);
 
     for (let i = 0; i <= numOfCellOnBatch - 1; i++) {
       // TODO: store all cells to a map.
       const top = 120 * i; // find in maps the cell before in batch size
       const left = 0;
-
       children.push(
-        cellRenderer({
-          index: i,
-          position: {
-            top: top,
-            left: left
-          }
-        })
+        <CellMeasurer cache={this._cache}
+                      id={'a'}
+                      position={{ top: top, left: left }}>
+          <div>a</div>
+          <button onClick={() => {}}>a</button>
+        </CellMeasurer>
       )
     }
 
@@ -133,7 +127,7 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _onScroll() {
-    // this.setState({scrollTop: document.getElementById(this.props.id).scrollTop});
+    this.setState({ scrollTop: this._masonry.scrollTop });
     // this.forceUpdate();
     // console.log(document.getElementById(this.props.id).scrollTop);
   }
@@ -160,16 +154,9 @@ class Masonry extends React.PureComponent<Props> {
     return 2 * overScanByPixel + masonryHeight;
   }
 
-  // _pushChildrenContent(children: [], cellRenderer, cellCount) {
-  //   for (let i = 0; i <= cellCount - 1; i++)
-  //     children.push(
-  //       cellRenderer({
-  //         index,
-  //         isScrolling,
-  //         style: {},
-  //       }),
-  //     );
-  // }
+  _updateCellToMap(cellId: string, height: number): void {
+    this._renderedCellMaps.set(cellId, height);
+  }
 }
 
 export default Masonry;

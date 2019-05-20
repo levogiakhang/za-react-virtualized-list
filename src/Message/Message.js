@@ -4,8 +4,9 @@ import React from 'react';
 import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
+import type { MessageBase } from "../ModelBase/MessageBase";
 
-export default class Message extends React.PureComponent<MessageProps> {
+export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
     super(props);
 
@@ -14,6 +15,10 @@ export default class Message extends React.PureComponent<MessageProps> {
     };
 
     this._onClick = this._onClick.bind(this);
+  }
+
+  getItemId(): string {
+    return this.props.id;
   }
 
   _getDisplayTime = (time): string => {

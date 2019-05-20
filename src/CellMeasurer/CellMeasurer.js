@@ -48,7 +48,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
   componentDidUpdate() {
     this._cellHeight = document.getElementById(this._id).getBoundingClientRect();
-    console.log(this._cellHeight);
+    // console.log(this._cellHeight);
   }
 
   get cellHeight() {
