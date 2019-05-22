@@ -31,7 +31,6 @@ class Masonry extends React.PureComponent<Props> {
 
     this._masonry = undefined;
 
-    this._calculateBatchSize = this._calculateBatchSize.bind(this);
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
     this._updateItemOnMap = this._updateItemOnMap.bind(this);
@@ -194,15 +193,13 @@ class Masonry extends React.PureComponent<Props> {
 
   }
 
-  _getEstimatedTotalHeight(): number {
-    const itemCount = this.props.data.length;
-    const defaultCellHeight = this.props.cellMeasurerCache.defaultHeight;
-    return itemCount * defaultCellHeight;
-  }
-
-  _calculateBatchSize(preRenderCellCount: number, cellHeight: number, masonryHeight: number): number {
-    const overScanByPixel = preRenderCellCount * cellHeight;
-    return 2 * overScanByPixel + masonryHeight;
+  _getEstimatedTotalHeight(cellCount, defaultHeight): number {
+    if(!this._renderedCellMaps || this._renderedCellMaps.size === 0) return cellCount*defaultHeight;
+    let totalHeight = 0;
+    this._renderedCellMaps.forEach((item) => {
+      totalHeight += item;
+    });
+    return totalHeight;
   }
 
   _updateItemOnMap(itemId: string, height: number): void {

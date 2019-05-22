@@ -19,9 +19,8 @@ class DemoList extends React.PureComponent {
     };
 
     this.getData = this.getData.bind(this);
-    this._renderCell = this._renderCell.bind(this);
     this._cache = new CellMeasurerCache({
-      defaultHeight: 107,
+      defaultHeight: 300,
       height: 300,
     });
   }
@@ -50,32 +49,10 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
-  _renderCell({ index, position }) {
-    const uuid = '123';
-    const date = '2007-04-07T04:21:47Z';
-    const thumbnail = 'https://randomuser.me/api/portraits/thumb/women/60.jpg';
-    const data = dataList[index];
-    const name = data.name;
-    const displayName = name.first + " " + name.last;
-    return (
-      <CellMeasurer cache={this._cache} id={uuid} position={{ top: position.top, left: position.left }}>
-        <Message id={data.name}
-                 userAvatarUrl={thumbnail}
-                 userName={displayName}
-                 messageContent={message[Math.floor(Math.random() * (message.length))]}
-                 sentTime={date}
-                 isMine={index % 2 === 0}/>
-      </CellMeasurer>
-
-    )
-  };
-
   _renderList = (dataList) => {
-    // const { name } = dataList;
     return (
-      // dataList.map(() => <p>{name}</p>)
-      // dataList.map((item, index) => this._renderCell(item, index))
       <Masonry height={500}
+               style={{marginTop: "200px"}}
                id={'khang'}
                data={dataList}
                cellMeasurerCache={this._cache}

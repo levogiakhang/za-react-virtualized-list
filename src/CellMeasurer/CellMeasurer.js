@@ -18,6 +18,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
     this._cellMeasurer = undefined;
     this._cellHeight = undefined;
+    // this.resizeObserver = undefined;
 
     this.onChildChangeHeight = this.onChildChangeHeight.bind(this);
   }
@@ -27,6 +28,13 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
     this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
+
+    // this.resizeObserver = new ResizeObserver(this.onChildChangeHeight);
+    // this.resizeObserver.observe(this._cellMeasurer);
+  }
+
+  componentWillUnmount() {
+    // this.resizeObserver.disconnect(this._cellMeasurer);
   }
 
 
@@ -34,16 +42,14 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     // update cellHeight
     this._cellHeight = newHeight;
     console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
-    Masonry.prototype.onChildrenChangeHeight(itemId, newHeight);
+    // Masonry.prototype.onChildrenChangeHeight(itemId, newHeight);
   }
 
   render() {
     const { children, id, position: { top, left } } = this.props;
 
-    console.log('render');
-
     // detect item height changed
-    // TODO: Button on Message click not call re-render
+    // TODO: Button on Message click not call re-render -> cellMeasurer not change in DOM tree
     if (this._cellMeasurer) {
       const oldHeight = Math.round(this._cellHeight);
       const newHeight = this._cellMeasurer.offsetHeight;
@@ -66,6 +72,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   }
 
   componentDidUpdate() {
+    this._cellHeight = this._cellMeasurer.offsetHeight;
   }
 
   get getCellHeight(): number {
