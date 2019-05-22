@@ -2,6 +2,7 @@
 import * as React from 'react';
 import CellMeasurerCache from "./CellMeasurerCache";
 import { Position } from "../utils/types";
+import Masonry from '../Masonry/Masonry'
 import * as ReactDOM from "react-dom";
 
 type Props = {
@@ -14,58 +15,74 @@ type Props = {
 export default class CellMeasurer extends React.PureComponent<Props> {
   constructor(props) {
     super(props);
+
+    this._cellMeasurer = undefined;
+    this._cellHeight = undefined;
+
+    this.onChildChangeHeight = this.onChildChangeHeight.bind(this);
   }
 
-  _position: Position = { top: this.props.position.top, left: this.props.position.left };
-  _cellHeight: number;
-  _id: string = this.props.id;
+  // _childId: string = this.props.child.getItemId();
 
   componentDidMount() {
-    // const { children } = this.props;
-    // const cell = ReactDOM.findDOMNode(this);
-    // cell.addEventListener('resize', () => {console.log('re')});
-    // console.log(document.getElementById(this._id).getBoundingClientRect());
+    this._cellMeasurer = ReactDOM.findDOMNode(this);
+    this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
   }
 
-  onResize() {
 
+  onChildChangeHeight(itemId, oldHeight, newHeight) {
+    // update cellHeight
+    this._cellHeight = newHeight;
+    console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
+    Masonry.prototype.onChildrenChangeHeight(itemId, newHeight);
   }
 
   render() {
-    const { children } = this.props;
+    const { children, id, position: { top, left } } = this.props;
+
+    console.log('render');
+
+    // detect item height changed
+    // TODO: Button on Message click not call re-render
+    if (this._cellMeasurer) {
+      const oldHeight = Math.round(this._cellHeight);
+      const newHeight = this._cellMeasurer.offsetHeight;
+      if (oldHeight !== newHeight) {
+        this.onChildChangeHeight(id, oldHeight, newHeight);
+      }
+    }
+
     return (
-      <div id={this._id}
-           ref={"abc"}
+      <div id={id}
            style={{
              position: 'absolute',
-             top: this._position.top,
-             left: this._position.left,
-             width: '100%'}}>
+             top: top,
+             left: left,
+             width: '100%'
+           }}>
         {children}
       </div>
     );
   }
 
   componentDidUpdate() {
-    this._cellHeight = document.getElementById(this._id).getBoundingClientRect();
-    // console.log(this._cellHeight);
   }
 
-  get cellHeight() {
+  get getCellHeight(): number {
     const { cache } = this.props;
     if (this._cellHeight === undefined) return cache.defaultHeight;
     return this._cellHeight;
   }
 
-  get getCellPosition() {
-    return this._position;
+  get getCellPosition(): Position {
+    return this.props.position;
   }
 
-  set setCellPosition(position: Position) {
-    this._position = position;
+  get getCellId(): string {
+    return this.props.id;
   }
 
-  get cellId() {
-    return this._id;
+  get getCache(): CellMeasurerCache {
+    return this.props.cache;
   }
 }

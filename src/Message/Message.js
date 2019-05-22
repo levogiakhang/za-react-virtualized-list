@@ -5,6 +5,7 @@ import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
 import type { MessageBase } from "../ModelBase/MessageBase";
+import Masonry from "../Masonry/Masonry";
 
 export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
@@ -17,8 +18,28 @@ export default class Message extends React.PureComponent<MessageProps> implement
     this._onClick = this._onClick.bind(this);
   }
 
-  getItemId(): string {
+  get getItemId(): string {
     return this.props.id;
+  }
+
+  get getUserAvatarUrl(): string {
+    return this.props.userAvatarUrl;
+  }
+
+  get getUserName(): string {
+    return this.props.userName;
+  }
+
+  get getMessageContent(): string {
+    return this.props.messageContent;
+  }
+
+  get getSentTime(): string {
+    return this.props.sentTime;
+  }
+
+  get getIsMine(): boolean {
+    return this.props.isMine;
   }
 
   _getDisplayTime = (time): string => {
@@ -41,11 +62,11 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   render() {
-    const { userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
+    const { id, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
     const { isExpanded } = this.state;
     return (
       isMine ?
-        <div className="row">
+        <div id={id} className="row">
           <div className="my-message-container">
             {/* MESSAGE CONTENT VIEW */}
             <div className="my-message-content-container">
@@ -75,7 +96,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
 
         :
 
-        <div className={isExpanded ? "expand-height" : "their-message-container"}>
+        <div id={id} className={isExpanded ? "expand-height" : "their-message-container"}>
           {/* AVATAR VIEW */}
           <div className="their-message-avatar-container">
             <div className="their-message-avatar-border">
