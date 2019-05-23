@@ -6,7 +6,7 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
 import Message from "../Message/Message";
-import { NOT_FOUND, NOT_UNIQUE, PREFIX } from "../utils/value";
+import { NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX } from "../utils/value";
 
 type Props = {
   className?: string,
@@ -192,6 +192,8 @@ class Masonry extends React.PureComponent<Props> {
 
   }
 
+  // @UNSAFE
+  // cellHeight is not updated.
   _getEstimatedTotalHeight(): number {
     const { data, cellMeasurerCache } = this.props;
 
@@ -214,7 +216,9 @@ class Masonry extends React.PureComponent<Props> {
     this._positionMaps.set(itemId, positionTop);
   }
 
-  // calculate all items' position
+  /*
+   *  Calculate all items' position
+   */
   _calculateItemsPosition() {
     const { data, cellMeasurerCache: { defaultHeight } } = this.props;
     let currentPosition = 0;
@@ -230,14 +234,47 @@ class Masonry extends React.PureComponent<Props> {
     });
   }
 
-  // calculate items' position from specified position to the end => reduces number of calculation
-  _calculateItemsPositionFrom(startPosition: number) {
+  // @UNSAFE
+  /*
+   *  Update other items' position below the item that changed height.
+   */
+  _updateItemsPositionWhenItemHeightChanged(itemId: string) {
+    const { data } = this.props;
+    const index = this._getIndexFromId(itemId);
+
+    for (let i = index; i <= data.length - 1; i++) {
+
+    }
+  }
+
+  // @UNSAFE
+  /*
+   *  Calculate items' position from specified position to the end => reduces number of calculation
+   */
+  _calculateItemsPositionFrom(fromPosition: number) {
     /* TODO: tìm xem vị trí cần lấy là thuộc phần tử thứ bao nhiêu,
         tạo vòng lặp từ vị trí đó đến cuối mảng
     */
+    const { data } = this.props;
+    const itemId = this._getItemIdFromPosition(fromPosition);
+    const index = this._getIndexFromId(itemId);
+
+    for (let i = index; i <= data.length - 1; i++) {
+
+    }
   }
 
+  /*
+ *  Get itemId of a item in _positionMaps by position.
+ *  @param:
+ *        + positionTop (number): position top where wanna get item in this.
+ *  @return:
+ *        + key (string): itemId.
+ *        + NOT_FOUND (-1): if item isn't in the maps.
+ *        + OUT_OF_RANGE ('out of range'): if position param is greater than total height.
+ */
   _getItemIdFromPosition(positionTop: number): string {
+    if (positionTop >= this._getEstimatedTotalHeight()) return OUT_OF_RANGE;
     for (let key of this._positionMaps.keys()) {
       if (!this._renderedCellMaps.has(key)) return NOT_FOUND;
       if (positionTop >= this._positionMaps.get(key) &&
@@ -247,6 +284,34 @@ class Masonry extends React.PureComponent<Props> {
     }
   }
 
+  /*
+ *  Get index of a item in data array by id
+ *  @param:
+ *        + itemId (string): identification of item. This id is unique for each item in array.
+ *  @return:
+ *        + (number): a value represents index of that item in the array.
+ *        + NOT_FOUND (-1): if item isn't in the array.
+ *        + NOT_UNIQUE (-2): if more than 1 item in the array.
+ */
+  _getIndexFromId(itemId: string): number {
+    const { data } = this.props;
+    // only for props.data
+    if (data) {
+      const results = data.filter((item) => {
+        const id = item.itemId;
+        return PREFIX + id === itemId
+      });
+      if (results.length === 0) {
+        return NOT_FOUND;
+      } else if (results.length > 1) {
+        return NOT_UNIQUE;
+      } else {
+        return data.indexOf(results[0]);
+      }
+    }
+  }
+
+  // @UNSAFE
   /*
    *  Return an array that stores itemId of items rendering in batch
    *  @param:
@@ -277,40 +342,14 @@ class Masonry extends React.PureComponent<Props> {
       // Bottom: số lượng item dưới < preRenderCellCount
     } else {
       // Middle
-      for (let i = 0; i <= 2 * preRenderCellCount + numOfItemInViewport; i++) {
-        arrResult.push(PREFIX + data[index + i - 5].itemId);
+      for (let i = 0; i < 2 * preRenderCellCount + numOfItemInViewport; i++) {
+        arrResult.push(PREFIX + data[index + i - preRenderCellCount].itemId);
       }
     }
 
     return arrResult;
   }
 
-  /*
-   *  Get index of a item in data array by id
-   *  @param:
-   *        + itemId (string): identification of item. This id is unique for each item in array.
-   *  @return:
-   *        + (number): a value represents index of that item in the array.
-   *        + NOT_FOUND (-1): if item isn't in the array.
-   *        + NOT_UNIQUE (-2): if more than 1 item in the array.
-   */
-  _getIndexFromId(itemId: string): number {
-    const { data } = this.props;
-    // only for props.data
-    if (data) {
-      const results = data.filter((item) => {
-        const id = item.itemId;
-        return PREFIX + id === itemId
-      });
-      if (results.length === 0) {
-        return NOT_FOUND;
-      } else if (results.length > 1) {
-        return NOT_UNIQUE;
-      } else {
-        return data.indexOf(results[0]);
-      }
-    }
-  }
 }
 
 export default Masonry;
