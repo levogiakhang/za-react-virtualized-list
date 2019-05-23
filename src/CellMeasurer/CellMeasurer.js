@@ -10,7 +10,13 @@ type Props = {
   cache: CellMeasurerCache,
   children: React.Element<*>,
   position: Position,
+  onCellChangeHeight: OnChildChangeHeightCallback,
 }
+
+type OnChildChangeHeightCallback = (params: {|
+  itemId: string,
+  height: number
+|}) => void
 
 export default class CellMeasurer extends React.PureComponent<Props> {
   constructor(props) {
@@ -28,7 +34,6 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
     this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
-
     // this.resizeObserver = new ResizeObserver(this.onChildChangeHeight);
     // this.resizeObserver.observe(this._cellMeasurer);
   }
@@ -42,7 +47,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     // update cellHeight
     this._cellHeight = newHeight;
     console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
-    // Masonry.prototype.onChildrenChangeHeight(itemId, newHeight);
+    this.props.onCellChangeHeight(itemId, newHeight);
   }
 
   render() {

@@ -27,12 +27,13 @@ class Masonry extends React.PureComponent<Props> {
       scrollTop: 0,
     };
 
-    // Map lưu trữ height của những cell đã đc render
+    // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
 
-    // Map stores id -> position;
+    // A map stores `itemId -> topPosition` of rendered items.
     this._positionMaps = new Map();
 
+    // Represents this element.
     this._masonry = undefined;
 
     this._onScroll = this._onScroll.bind(this);
@@ -41,18 +42,17 @@ class Masonry extends React.PureComponent<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this._getItemsFromOffset = this._getItemsFromOffset.bind(this);
     this.scrollToOffset = this.scrollToOffset.bind(this);
-  }
 
-  componentDidMount() {
     const { data, cellMeasurerCache } = this.props;
-
-    this._masonry = ReactDOM.findDOMNode(this);
-    this._masonry.addEventListener('scroll', this._onScroll);
-    this._masonry.addEventListener('resize', this._onResize);
-
     data.forEach((item) => {
       this._updateItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
+  }
+
+  componentDidMount() {
+    this._masonry = ReactDOM.findDOMNode(this);
+    this._masonry.addEventListener('scroll', this._onScroll);
+    this._masonry.addEventListener('resize', this._onResize);
   }
 
   componentWillUnmount() {
@@ -65,8 +65,8 @@ class Masonry extends React.PureComponent<Props> {
     this.forceUpdate();
   }
 
-  onChildrenChangeHeight(itemId: string, newHeight: number) {
-    this._updateItemOnMap(itemId, newHeight);
+  onChildrenChangeHeight(itemId: string, oldHeight:number, newHeight: number) {
+    this._updateItemsPositionWhenItemChangedHeight(itemId, oldHeight, newHeight);
     this.forceUpdate();
   }
 
@@ -122,6 +122,7 @@ class Masonry extends React.PureComponent<Props> {
             <CellMeasurer cache={cellMeasurer.getCache}
                           id={cellMeasurer.getCellId}
                           key={cellMeasurer.getCellId}
+                          onCellChangeHeight={this._updateItemOnMap}
                           position={cellMeasurer.getCellPosition}>
               <Message id={mess.getItemId}
                        key={mess.getItemId}
@@ -131,9 +132,6 @@ class Masonry extends React.PureComponent<Props> {
                        sentTime={mess.getSentTime}/>
             </CellMeasurer>
           );
-
-          this._updateItemOnMap(cellMeasurer.getCellId, cellMeasurer.getCellHeight);
-
           break;
         }
 
@@ -192,8 +190,10 @@ class Masonry extends React.PureComponent<Props> {
 
   }
 
-  // @UNSAFE
-  // cellHeight is not updated.
+  // @UNSAFE: cellHeight is not updated.
+  /*
+   *  Get total height in estimation.
+   */
   _getEstimatedTotalHeight(): number {
     const { data, cellMeasurerCache } = this.props;
 
@@ -203,16 +203,32 @@ class Masonry extends React.PureComponent<Props> {
 
     let totalHeight = 0;
     this._renderedCellMaps.forEach((item) => {
-      totalHeight += item;
+      totalHeight += Math.round(item);
     });
     return totalHeight;
   }
 
+  /*
+   *  Add or update an item in _renderedCellMaps
+   *  @params:
+   *        + itemId (string): identification of item.
+   *        + height (number): new height of the item.
+   *  @return:
+   *        + void.
+   */
   _updateItemOnMap(itemId: string, height: number): void {
     this._renderedCellMaps.set(itemId, height);
   }
 
-  _updateItemPositionOnMap(itemId: string, positionTop: number) {
+  /*
+ *  Add or update an item in _positionMaps
+ *  @params:
+ *        + itemId (string): identification of item.
+ *        + positionTop (number): new top coordinate of the item.
+ *  @return:
+ *        + void.
+ */
+  _updateItemPositionOnMap(itemId: string, positionTop: number): void {
     this._positionMaps.set(itemId, positionTop);
   }
 
@@ -238,13 +254,11 @@ class Masonry extends React.PureComponent<Props> {
   /*
    *  Update other items' position below the item that changed height.
    */
-  _updateItemsPositionWhenItemHeightChanged(itemId: string) {
-    const { data } = this.props;
-    const index = this._getIndexFromId(itemId);
+  _updateItemsPositionWhenItemChangedHeight(itemId: string, oldHeight: number, newHeight: number) {
+    const itemPosition = this._getPositionOfItem(itemId);
 
-    for (let i = index; i <= data.length - 1; i++) {
-
-    }
+    this._updateItemOnMap(itemId, newHeight);
+    this._calculateItemsPositionFrom(itemPosition);
   }
 
   // @UNSAFE
@@ -252,9 +266,6 @@ class Masonry extends React.PureComponent<Props> {
    *  Calculate items' position from specified position to the end => reduces number of calculation
    */
   _calculateItemsPositionFrom(fromPosition: number) {
-    /* TODO: tìm xem vị trí cần lấy là thuộc phần tử thứ bao nhiêu,
-        tạo vòng lặp từ vị trí đó đến cuối mảng
-    */
     const { data } = this.props;
     const itemId = this._getItemIdFromPosition(fromPosition);
     const index = this._getIndexFromId(itemId);
@@ -262,6 +273,18 @@ class Masonry extends React.PureComponent<Props> {
     for (let i = index; i <= data.length - 1; i++) {
 
     }
+  }
+
+  /*
+   *  Get item's position by itemId.
+   *  @param:
+   *        + itemId (string): identification of item.
+   *  @return:
+   *        + (number): top coordinate of item.
+   *        + NOT_FOUND (-1): if item is NOT in _positionMaps.
+   */
+  _getPositionOfItem(itemId: string): number {
+    return this._positionMaps.has(itemId) ? this._positionMaps.get(itemId) : NOT_FOUND
   }
 
   /*
