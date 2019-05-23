@@ -3,7 +3,7 @@ import './css/DemoList.css';
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
-import { ListMessageExample } from '../utils/ListMessageExample';
+import { KhangObjData, ListMessageExample } from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
@@ -27,7 +27,8 @@ class DemoList extends React.PureComponent {
 
   async componentDidMount(): void {
     const data = await this.getData();
-    data.forEach(item => dataList.push(item));
+    data.forEach(item => dataList.push({itemId: item.login.uuid, ...item}));
+    dataList.push(KhangObjData);
     this.setState({ isLoading: false });
   }
 
