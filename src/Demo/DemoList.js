@@ -9,7 +9,7 @@ import Masonry from "../Masonry/Masonry";
 let dataList = [];
 let message = ListMessageExample;
 
-const DATA_NUMBER = 100;
+const DATA_NUMBER = 50;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -20,7 +20,7 @@ class DemoList extends React.PureComponent {
 
     this.getData = this.getData.bind(this);
     this._cache = new CellMeasurerCache({
-      defaultHeight: 300,
+      defaultHeight: 107,
       height: 300,
     });
   }

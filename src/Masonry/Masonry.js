@@ -6,7 +6,7 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
 import Message from "../Message/Message";
-import { NOT_FOUND, NOT_UNIQUE } from "../utils/value";
+import { NOT_FOUND, NOT_UNIQUE, PREFIX } from "../utils/value";
 
 type Props = {
   className?: string,
@@ -30,6 +30,9 @@ class Masonry extends React.PureComponent<Props> {
     // Map lưu trữ height của những cell đã đc render
     this._renderedCellMaps = new Map();
 
+    // Map stores id -> position;
+    this._positionMaps = new Map();
+
     this._masonry = undefined;
 
     this._onScroll = this._onScroll.bind(this);
@@ -48,7 +51,7 @@ class Masonry extends React.PureComponent<Props> {
     this._masonry.addEventListener('resize', this._onResize);
 
     data.forEach((item) => {
-      this._updateItemOnMap('HOC_' + item.itemId, cellMeasurerCache.defaultHeight);
+      this._updateItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
   }
 
@@ -84,25 +87,20 @@ class Masonry extends React.PureComponent<Props> {
 
     const { scrollTop } = this.state;
 
-    const estimateTotalHeight = this._getEstimatedTotalHeight(data.length, cellMeasurerCache.defaultHeight);
-
     // console.log(data);
-    
+
     // array item is rendered in the batch.
     const children = [];
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
+    this._calculateItemsPosition();
+
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       // TODO: store all cells to a map.
 
-      const index = data.indexOf(data.filter((item) => {
-        return item.login.uuid === itemsInBatch[i]
-      })[0]);
-
-      const top = 100 * index; // find in maps the cell before in batch size
-      const left = 0;
+      const index = this._getIndexFromId(itemsInBatch[i]);
 
       switch (typeof data[index]) {
         case "object": {
@@ -116,8 +114,8 @@ class Masonry extends React.PureComponent<Props> {
 
           const cellMeasurer = new CellMeasurer({
             cache: cellMeasurerCache,
-            id: 'HOC_' + mess.getItemId,
-            position: { top: top, left: left },
+            id: PREFIX + mess.getItemId,
+            position: { top: this._positionMaps.get(itemsInBatch[i]), left: 0 },
           });
 
           children.push(
@@ -135,6 +133,7 @@ class Masonry extends React.PureComponent<Props> {
           );
 
           this._updateItemOnMap(cellMeasurer.getCellId, cellMeasurer.getCellHeight);
+
           break;
         }
 
@@ -143,6 +142,8 @@ class Masonry extends React.PureComponent<Props> {
         }
       }
     }
+
+    const estimateTotalHeight = this._getEstimatedTotalHeight();
 
     return (
       <div className={className}
@@ -191,8 +192,13 @@ class Masonry extends React.PureComponent<Props> {
 
   }
 
-  _getEstimatedTotalHeight(cellCount, defaultHeight): number {
-    if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) return cellCount * defaultHeight;
+  _getEstimatedTotalHeight(): number {
+    const { data, cellMeasurerCache } = this.props;
+
+    if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) {
+      return data.length * cellMeasurerCache.defaultHeight;
+    }
+
     let totalHeight = 0;
     this._renderedCellMaps.forEach((item) => {
       totalHeight += item;
@@ -202,6 +208,43 @@ class Masonry extends React.PureComponent<Props> {
 
   _updateItemOnMap(itemId: string, height: number): void {
     this._renderedCellMaps.set(itemId, height);
+  }
+
+  _updateItemPositionOnMap(itemId: string, positionTop: number) {
+    this._positionMaps.set(itemId, positionTop);
+  }
+
+  // calculate all items' position
+  _calculateItemsPosition() {
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
+    let currentPosition = 0;
+
+    data.forEach((item) => {
+      this._updateItemPositionOnMap(PREFIX + item.itemId, currentPosition);
+      if (this._renderedCellMaps.has(item.itemId)) {
+        currentPosition += this._renderedCellMaps.get(item.itemId);
+      } else {
+        currentPosition += defaultHeight;
+      }
+      //console.log(currentPosition);
+    });
+  }
+
+  // calculate items' position from specified position to the end => reduces number of calculation
+  _calculateItemsPositionFrom(startPosition: number) {
+    /* TODO: tìm xem vị trí cần lấy là thuộc phần tử thứ bao nhiêu,
+        tạo vòng lặp từ vị trí đó đến cuối mảng
+    */
+  }
+
+  _getItemIdFromPosition(positionTop: number): string {
+    for (let key of this._positionMaps.keys()) {
+      if (!this._renderedCellMaps.has(key)) return NOT_FOUND;
+      if (positionTop >= this._positionMaps.get(key) &&
+        positionTop <= this._positionMaps.get(key) + this._renderedCellMaps.get(key)) {
+        return key;
+      }
+    }
   }
 
   /*
@@ -235,7 +278,7 @@ class Masonry extends React.PureComponent<Props> {
     } else {
       // Middle
       for (let i = 0; i <= 2 * preRenderCellCount + numOfItemInViewport; i++) {
-        arrResult.push(data[index + i - 5].login.uuid);
+        arrResult.push(PREFIX + data[index + i - 5].itemId);
       }
     }
 
@@ -246,18 +289,18 @@ class Masonry extends React.PureComponent<Props> {
    *  Get index of a item in data array by id
    *  @param:
    *        + itemId (string): identification of item. This id is unique for each item in array.
-   *        + data: (Object): an array stores items.
    *  @return:
    *        + (number): a value represents index of that item in the array.
    *        + NOT_FOUND (-1): if item isn't in the array.
    *        + NOT_UNIQUE (-2): if more than 1 item in the array.
    */
-  _getIndexFromId(itemId: string, data: Object): number {
+  _getIndexFromId(itemId: string): number {
+    const { data } = this.props;
+    // only for props.data
     if (data) {
       const results = data.filter((item) => {
-        // only for props.data
-        // TODO: change structure
-        return item.itemId === itemId
+        const id = item.itemId;
+        return PREFIX + id === itemId
       });
       if (results.length === 0) {
         return NOT_FOUND;
