@@ -6,6 +6,7 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
 import Message from "../Message/Message";
+import { NOT_FOUND, NOT_UNIQUE } from "../utils/value";
 
 type Props = {
   className?: string,
@@ -47,7 +48,7 @@ class Masonry extends React.PureComponent<Props> {
     this._masonry.addEventListener('resize', this._onResize);
 
     data.forEach((item) => {
-      this._updateItemOnMap(item.login.uuid, cellMeasurerCache.defaultHeight);
+      this._updateItemOnMap('HOC_' + item.itemId, cellMeasurerCache.defaultHeight);
     });
   }
 
@@ -85,14 +86,12 @@ class Masonry extends React.PureComponent<Props> {
 
     const estimateTotalHeight = this._getEstimatedTotalHeight(data.length, cellMeasurerCache.defaultHeight);
 
+    // console.log(data);
+    
+    // array item is rendered in the batch.
     const children = [];
 
-    if (document.getElementById(id) !== null) {
-      // console.log(this.state.scrollTop);
-    }
-
-    // console.log(data);
-
+    // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
@@ -136,7 +135,6 @@ class Masonry extends React.PureComponent<Props> {
           );
 
           this._updateItemOnMap(cellMeasurer.getCellId, cellMeasurer.getCellHeight);
-
           break;
         }
 
@@ -194,7 +192,7 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _getEstimatedTotalHeight(cellCount, defaultHeight): number {
-    if(!this._renderedCellMaps || this._renderedCellMaps.size === 0) return cellCount*defaultHeight;
+    if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) return cellCount * defaultHeight;
     let totalHeight = 0;
     this._renderedCellMaps.forEach((item) => {
       totalHeight += item;
@@ -223,20 +221,52 @@ class Masonry extends React.PureComponent<Props> {
     const index = Math.floor(scrollTop / 100);
     // console.log(data[index].login.uuid);
 
-    for (let i = 0; i <= 5; i++)
-      arrResult.push(data[index + i].login.uuid);
+    /*
+        số lượng item trong view port cần biết item nào đang ở vị trí đầu tiên xuất hiện
+        trong view port + height của nó + lần lượt các item sau nó
+        cho đến khi vị trí của item thứ i > scrollTop + height;
+     */
+    const numOfItemInViewport = height / defaultHeight;
 
     if (scrollTop < overscanOnPixel) {
-      // số lượng item trên top < preRenderCellCount
-      // console.log('top');
+      // Top: số lượng item trên top < preRenderCellCount
     } else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
-      // số lượng item dưới < preRenderCellCount
-      // console.log('bottom');
+      // Bottom: số lượng item dưới < preRenderCellCount
     } else {
-      // console.log('middle');
+      // Middle
+      for (let i = 0; i <= 2 * preRenderCellCount + numOfItemInViewport; i++) {
+        arrResult.push(data[index + i - 5].login.uuid);
+      }
     }
 
     return arrResult;
+  }
+
+  /*
+   *  Get index of a item in data array by id
+   *  @param:
+   *        + itemId (string): identification of item. This id is unique for each item in array.
+   *        + data: (Object): an array stores items.
+   *  @return:
+   *        + (number): a value represents index of that item in the array.
+   *        + NOT_FOUND (-1): if item isn't in the array.
+   *        + NOT_UNIQUE (-2): if more than 1 item in the array.
+   */
+  _getIndexFromId(itemId: string, data: Object): number {
+    if (data) {
+      const results = data.filter((item) => {
+        // only for props.data
+        // TODO: change structure
+        return item.itemId === itemId
+      });
+      if (results.length === 0) {
+        return NOT_FOUND;
+      } else if (results.length > 1) {
+        return NOT_UNIQUE;
+      } else {
+        return data.indexOf(results[0]);
+      }
+    }
   }
 }
 
