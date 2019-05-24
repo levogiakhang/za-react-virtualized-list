@@ -15,7 +15,8 @@ type Props = {
 
 type OnChildChangeHeightCallback = (params: {|
   itemId: string,
-  height: number
+  oldHeight: number,
+  newHeight: number
 |}) => void
 
 export default class CellMeasurer extends React.PureComponent<Props> {
@@ -48,7 +49,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     // update cellHeight
     this._cellHeight = newHeight;
     // console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
-    this.props.onCellChangeHeight(itemId, newHeight);
+    this.props.onCellChangeHeight(itemId, oldHeight, newHeight);
   }
 
   render() {
