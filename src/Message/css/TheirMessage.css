@@ -51,6 +51,7 @@ p {
 .their-message-content-container {
     background-color: azure;
     max-width: 1200px;
+    margin-left: 10px;
     padding: 10px;
     border-radius: 10px;
 }
