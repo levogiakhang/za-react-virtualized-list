@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
-import { ListMessageExample} from '../utils/ListMessageExample';
+import { ListMessageExample } from '../utils/ListMessageExample';
 import Message from "../Message/Message";
 import { NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX } from "../utils/value";
 
@@ -16,10 +16,10 @@ type Props = {
   height: number,
   preRenderCellCount: number,
   data: any,
-  cellMeasurerCache: CellMeasurerCache
+  cellMeasurerCache: CellMeasurerCache,
 };
 
-class Masonry extends React.PureComponent<Props> {
+class Masonry extends React.Component<Props> {
   constructor(props) {
     super(props);
 
@@ -70,8 +70,8 @@ class Masonry extends React.PureComponent<Props> {
     this.forceUpdate();
   }
 
-  onChildrenChangeHeight(itemId: string, oldHeight: number, newHeight: number) {
-    this._updateItemsPositionWhenItemChangedHeight(itemId, oldHeight, newHeight);
+  onChildrenChangeHeight(itemId: string, newHeight: number) {
+    this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
     this.forceUpdate();
   }
 
@@ -92,7 +92,7 @@ class Masonry extends React.PureComponent<Props> {
 
     const { scrollTop } = this.state;
 
-    // console.log(data);
+    console.log(data);
 
     // array item is rendered in the batch.
     const children = [];
@@ -101,7 +101,7 @@ class Masonry extends React.PureComponent<Props> {
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
     this._updateItemsPosition();
-
+    console.log(this._positionMaps);
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       // TODO: store all cells to a map.
 
@@ -110,9 +110,9 @@ class Masonry extends React.PureComponent<Props> {
       switch (typeof data[index]) {
         case "object": {
           const mess = new Message({
-            id: data[index].login.uuid,
+            id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
-            userName: index + data[index].name.first,
+            userName: index + " " + data[index].name.first,
             messageContent: ListMessageExample[20],
             sentTime: data[index].registered.date
           });
@@ -260,28 +260,30 @@ class Masonry extends React.PureComponent<Props> {
     });
   }
 
-  // @UNSAFE
   /*
    *  Update other items' position below the item that changed height.
    */
-  _updateItemsPositionWhenItemChangedHeight(itemId: string, oldHeight: number, newHeight: number) {
-    const itemPosition = this._getPositionOfItem(itemId);
-
+  _updateItemsPositionWhenItemChangedHeight(itemId: string, newHeight: number) {
     this._setItemOnMap(itemId, newHeight);
-    this._calculateItemsPositionFrom(itemPosition);
+    this._calculateItemsPositionFromSpecifiedItem(itemId);
   }
 
-  // @UNSAFE
   /*
-   *  Calculate items' position from specified position to the end => reduces number of calculation
+   *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
-  _calculateItemsPositionFrom(fromPosition: number) {
+  _calculateItemsPositionFromSpecifiedItem(itemId: string) {
     const { data } = this.props;
-    const itemId = this._getItemIdFromPosition(fromPosition);
-    const index = this._getIndexFromId(itemId);
 
-    for (let i = index; i <= data.length - 1; i++) {
+    let currentItemId = itemId;
+    const currentIndex = this._getIndexFromId(itemId);
+    console.log(currentIndex);
 
+    for (let i = currentIndex; i < data.length; i++) {
+      const currentItemPosition = this._positionMaps.get(currentItemId);
+      const currentItemHeight = this._renderedCellMaps.get(currentItemId);
+      const followingItemId = this._getItemIdFromIndex(i + 1);
+      // TODO: preview wrong itemId
+      this._setItemPositionOnMap(followingItemId, currentItemPosition + currentItemHeight);
     }
   }
 
@@ -331,8 +333,7 @@ class Masonry extends React.PureComponent<Props> {
     // only for props.data
     if (data) {
       const results = data.filter((item) => {
-        const id = item.itemId;
-        return PREFIX + id === itemId
+        return PREFIX + item.itemId === itemId
       });
       if (results.length === 0) {
         return NOT_FOUND;
@@ -359,7 +360,7 @@ class Masonry extends React.PureComponent<Props> {
     if (index > data.length || index < 0) return OUT_OF_RANGE;
 
     for (let i = 0; i <= data.length - 1; i++) {
-      maps.set(i, data[i].itemId);
+      maps.set(i, PREFIX + data[i].itemId);
     }
 
     return maps.get(index);
@@ -377,21 +378,28 @@ class Masonry extends React.PureComponent<Props> {
     const overscanOnPixel = defaultHeight * preRenderCellCount;
 
     let results: Array<string> = [];
-    const currentIndex = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
+    // console.log(scrollTop);
+    const itemId = this._getItemIdFromPosition(scrollTop);
+    console.log(itemId);
+    const currentIndex = this._getIndexFromId(itemId);
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
 
+    // Top: số lượng item trên top < preRenderCellCount
     if (scrollTop < overscanOnPixel) {
-      // Top: số lượng item trên top < preRenderCellCount
       for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
         results.push(PREFIX + data[i].itemId);
       }
-    } else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
-      // Bottom: số lượng item dưới < preRenderCellCount
+    }
+
+    // Bottom: số lượng item dưới < preRenderCellCount
+    else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
       for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
         results.push(PREFIX + data[i].itemId);
       }
-    } else {
-      // Middle
+    }
+
+    // Middle
+    else {
       if (currentIndex + numOfItemInViewport + preRenderCellCount >= data.length) {
         for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
           results.push(PREFIX + data[i].itemId);
