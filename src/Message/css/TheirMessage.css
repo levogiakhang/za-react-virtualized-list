@@ -15,7 +15,7 @@ p {
 .expand-height {
     max-width: 80%;
     min-width: 200px;
-    min-height: 150px;
+    min-height: 300px;
     background-color: transparent;
     display: flex;
     flex-direction: row;
