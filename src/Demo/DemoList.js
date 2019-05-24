@@ -3,7 +3,7 @@ import './css/DemoList.css';
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Message from "../Message/Message";
-import { KhangObjData, ListMessageExample } from '../utils/ListMessageExample';
+import { bottomData, KhangObjData, ListMessageExample } from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
@@ -19,6 +19,9 @@ class DemoList extends React.PureComponent {
     };
 
     this.getData = this.getData.bind(this);
+    this.loadMoreTop = this.loadMoreTop.bind(this);
+    this.loadMoreBottom = this.loadMoreBottom.bind(this);
+
     this._cache = new CellMeasurerCache({
       defaultHeight: 120,
       height: 300,
@@ -27,7 +30,7 @@ class DemoList extends React.PureComponent {
 
   async componentDidMount(): void {
     const data = await this.getData();
-    data.forEach(item => dataList.push({itemId: item.login.uuid, ...item}));
+    data.forEach(item => dataList.push({ itemId: item.login.uuid, ...item }));
     dataList.push(KhangObjData);
     this.setState({ isLoading: false });
   }
@@ -50,14 +53,42 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
+  loadMoreTop() {
+
+  }
+
+  loadMoreBottom() {
+    bottomData.forEach(item => dataList.push(item));
+  }
+
   _renderList = (dataList) => {
     return (
       <Masonry height={500}
-               style={{marginTop: "200px"}}
+               style={{ marginTop: "60px" }}
                id={'khang'}
                data={dataList}
                cellMeasurerCache={this._cache}
                preRenderCellCount={5}/>
+    )
+  };
+
+  _renderBtnTop = () => {
+    return (
+      <div style={{ display: 'flex', paddingTop: "100px", paddingRight: '20px', justifyContent: 'flex-end' }}>
+        <button onClick={this.loadMoreTop}>
+          Load more top...
+        </button>
+      </div>
+    )
+  };
+
+  _renderBtnBottom = () => {
+    return (
+      <div style={{ display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end' }}>
+        <button onClick={this.loadMoreBottom}>
+          Load more bottom...
+        </button>
+      </div>
     )
   };
 
@@ -67,7 +98,11 @@ class DemoList extends React.PureComponent {
       isLoading ?
         <div>Loading...</div>
         :
-        this._renderList(dataList)
+        <div>
+          {this._renderBtnTop()}
+          {this._renderList(dataList)}
+          {this._renderBtnBottom()}
+        </div>
     );
   }
 }
