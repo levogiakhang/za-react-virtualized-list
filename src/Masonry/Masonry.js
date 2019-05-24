@@ -108,8 +108,8 @@ class Masonry extends React.PureComponent<Props> {
           const mess = new Message({
             id: data[index].login.uuid,
             userAvatarUrl: data[index].picture.thumbnail,
-            userName: data[index].name.first,
-            messageContent: data[index].email,
+            userName: index + data[index].name.first,
+            messageContent: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
             sentTime: data[index].registered.date
           });
 
@@ -123,7 +123,7 @@ class Masonry extends React.PureComponent<Props> {
             <CellMeasurer cache={cellMeasurer.getCache}
                           id={cellMeasurer.getCellId}
                           key={cellMeasurer.getCellId}
-                          onCellChangeHeight={this._updateItemOnMap}
+                          onCellChangeHeight={this.onChildrenChangeHeight}
                           position={cellMeasurer.getCellPosition}>
               <Message id={mess.getItemId}
                        key={mess.getItemId}
@@ -372,24 +372,33 @@ class Masonry extends React.PureComponent<Props> {
 
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
 
-    console.log(numOfItemInViewport);
     if (scrollTop < overscanOnPixel) {
       // Top: số lượng item trên top < preRenderCellCount
+      for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
+        arrResult.push(PREFIX + data[i].itemId);
+      }
     } else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
       // Bottom: số lượng item dưới < preRenderCellCount
-      for (let i = index - preRenderCellCount; i < data.length; i++) {
+      for (let i = Math.max(0, index - preRenderCellCount); i < data.length; i++) {
         arrResult.push(PREFIX + data[i].itemId);
       }
     } else {
       // Middle
-      for (let i = index - 5; i <= index + numOfItemInViewport + 5; i++) {
-        arrResult.push(PREFIX + data[i].itemId);
+      if (index + numOfItemInViewport + preRenderCellCount >= data.length) {
+        for (let i = Math.max(0, index - preRenderCellCount); i < data.length; i++) {
+          arrResult.push(PREFIX + data[i].itemId);
+        }
+      } else {
+        for (let i = Math.max(0, index - preRenderCellCount); i <= index + numOfItemInViewport + preRenderCellCount; i++) {
+          arrResult.push(PREFIX + data[i].itemId);
+        }
       }
     }
 
     return arrResult;
   }
 
+  // sai
   /*
    *  Return an array stores all items rendering in viewport.
    *  @params:
