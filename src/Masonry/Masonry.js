@@ -5,6 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import PositionCache from './PositionCache';
+import { ListMessageExample} from '../utils/ListMessageExample';
 import Message from "../Message/Message";
 import { NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX } from "../utils/value";
 
@@ -27,6 +28,8 @@ class Masonry extends React.PureComponent<Props> {
       scrollTop: 0,
     };
 
+    this._oldScrollTop = 0;
+
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
 
@@ -38,20 +41,21 @@ class Masonry extends React.PureComponent<Props> {
 
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
-    this._updateItemOnMap = this._updateItemOnMap.bind(this);
+    this._setItemOnMap = this._setItemOnMap.bind(this);
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this._getItemsFromOffset = this._getItemsFromOffset.bind(this);
     this.scrollToOffset = this.scrollToOffset.bind(this);
 
     const { data, cellMeasurerCache } = this.props;
     data.forEach((item) => {
-      this._updateItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
+      this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
   }
 
   componentDidMount() {
     this._masonry = ReactDOM.findDOMNode(this);
-    this.scrollToOffset(this._getEstimatedTotalHeight() - this.props.height);
+    this._masonry.firstChild.scrollIntoView(false);
+    // this.scrollToOffset(this._getEstimatedTotalHeight() - this.props.height);
     this._masonry.addEventListener('scroll', this._onScroll);
     this._masonry.addEventListener('resize', this._onResize);
   }
@@ -96,7 +100,7 @@ class Masonry extends React.PureComponent<Props> {
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
-    this._calculateItemsPosition();
+    this._updateItemsPosition();
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       // TODO: store all cells to a map.
@@ -109,7 +113,7 @@ class Masonry extends React.PureComponent<Props> {
             id: data[index].login.uuid,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + data[index].name.first,
-            messageContent: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+            messageContent: ListMessageExample[20],
             sentTime: data[index].registered.date
           });
 
@@ -176,7 +180,6 @@ class Masonry extends React.PureComponent<Props> {
   }
 
   _onScroll() {
-    this._getItemsFromOffset(this._masonry.scrollTop);
     this.setState({ scrollTop: this._masonry.scrollTop });
     // this.forceUpdate();
     // console.log(document.getElementById(this.props.id).scrollTop);
@@ -189,6 +192,14 @@ class Masonry extends React.PureComponent<Props> {
 
   _onUpdate(key: any) {
 
+  }
+
+  _getOldScrollTop(): number {
+    return this._oldScrollTop;
+  }
+
+  _setOldScrollTop(currentScrollTop) {
+    this._oldScrollTop = currentScrollTop;
   }
 
   // @UNSAFE: cellHeight is not updated.
@@ -217,7 +228,7 @@ class Masonry extends React.PureComponent<Props> {
    *  @return:
    *        + void.
    */
-  _updateItemOnMap(itemId: string, height: number): void {
+  _setItemOnMap(itemId: string, height: number): void {
     this._renderedCellMaps.set(itemId, height);
   }
 
@@ -229,24 +240,23 @@ class Masonry extends React.PureComponent<Props> {
  *  @return:
  *        + void.
  */
-  _updateItemPositionOnMap(itemId: string, positionTop: number): void {
+  _setItemPositionOnMap(itemId: string, positionTop: number): void {
     this._positionMaps.set(itemId, positionTop);
   }
 
   /*
-   *  Calculate all items' position
+   *  Update all items' position
    */
-  _calculateItemsPosition() {
+  _updateItemsPosition() {
     const { data, cellMeasurerCache: { defaultHeight } } = this.props;
     let currentPosition = 0;
     data.forEach((item) => {
-      this._updateItemPositionOnMap(PREFIX + item.itemId, currentPosition);
+      this._setItemPositionOnMap(PREFIX + item.itemId, currentPosition);
       if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
         currentPosition += this._renderedCellMaps.get(PREFIX + item.itemId);
       } else {
         currentPosition += defaultHeight;
       }
-      //console.log(currentPosition);
     });
   }
 
@@ -257,7 +267,7 @@ class Masonry extends React.PureComponent<Props> {
   _updateItemsPositionWhenItemChangedHeight(itemId: string, oldHeight: number, newHeight: number) {
     const itemPosition = this._getPositionOfItem(itemId);
 
-    this._updateItemOnMap(itemId, newHeight);
+    this._setItemOnMap(itemId, newHeight);
     this._calculateItemsPositionFrom(itemPosition);
   }
 
@@ -366,39 +376,39 @@ class Masonry extends React.PureComponent<Props> {
     const { height, preRenderCellCount, cellMeasurerCache: { defaultHeight }, data } = this.props;
     const overscanOnPixel = defaultHeight * preRenderCellCount;
 
-    let arrResult: Array<string> = [];
-
-    const index = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
-
+    let results: Array<string> = [];
+    const currentIndex = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
 
     if (scrollTop < overscanOnPixel) {
       // Top: số lượng item trên top < preRenderCellCount
       for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
-        arrResult.push(PREFIX + data[i].itemId);
+        results.push(PREFIX + data[i].itemId);
       }
     } else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
       // Bottom: số lượng item dưới < preRenderCellCount
-      for (let i = Math.max(0, index - preRenderCellCount); i < data.length; i++) {
-        arrResult.push(PREFIX + data[i].itemId);
+      for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
+        results.push(PREFIX + data[i].itemId);
       }
     } else {
       // Middle
-      if (index + numOfItemInViewport + preRenderCellCount >= data.length) {
-        for (let i = Math.max(0, index - preRenderCellCount); i < data.length; i++) {
-          arrResult.push(PREFIX + data[i].itemId);
+      if (currentIndex + numOfItemInViewport + preRenderCellCount >= data.length) {
+        for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
+          results.push(PREFIX + data[i].itemId);
         }
       } else {
-        for (let i = Math.max(0, index - preRenderCellCount); i <= index + numOfItemInViewport + preRenderCellCount; i++) {
-          arrResult.push(PREFIX + data[i].itemId);
+        for (let i = Math.max(0, currentIndex - preRenderCellCount);
+             i <= currentIndex + numOfItemInViewport + preRenderCellCount;
+             i++) {
+          results.push(PREFIX + data[i].itemId);
         }
       }
     }
 
-    return arrResult;
+    return results;
   }
 
-  // sai
+  // TODO: sai => xem lại
   /*
    *  Return an array stores all items rendering in viewport.
    *  @params:
