@@ -51,6 +51,7 @@ class Masonry extends React.PureComponent<Props> {
 
   componentDidMount() {
     this._masonry = ReactDOM.findDOMNode(this);
+    this.scrollToOffset(this._getEstimatedTotalHeight() - this.props.height);
     this._masonry.addEventListener('scroll', this._onScroll);
     this._masonry.addEventListener('resize', this._onResize);
   }
@@ -65,7 +66,7 @@ class Masonry extends React.PureComponent<Props> {
     this.forceUpdate();
   }
 
-  onChildrenChangeHeight(itemId: string, oldHeight:number, newHeight: number) {
+  onChildrenChangeHeight(itemId: string, oldHeight: number, newHeight: number) {
     this._updateItemsPositionWhenItemChangedHeight(itemId, oldHeight, newHeight);
     this.forceUpdate();
   }
@@ -238,7 +239,6 @@ class Masonry extends React.PureComponent<Props> {
   _calculateItemsPosition() {
     const { data, cellMeasurerCache: { defaultHeight } } = this.props;
     let currentPosition = 0;
-
     data.forEach((item) => {
       this._updateItemPositionOnMap(PREFIX + item.itemId, currentPosition);
       if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
@@ -334,6 +334,27 @@ class Masonry extends React.PureComponent<Props> {
     }
   }
 
+  /*
+   *  Get itemId from index.
+   *  @param:
+   *        + index (number): index of item.
+   *  @return:
+   *        + a string represents for itemId
+   *        + OUT_OF_RANGE (-3): if index out of range of data.
+   */
+  _getItemIdFromIndex(index: number): string {
+    const { data } = this.props;
+    const maps = new Map();
+
+    if (index > data.length || index < 0) return OUT_OF_RANGE;
+
+    for (let i = 0; i <= data.length - 1; i++) {
+      maps.set(i, data[i].itemId);
+    }
+
+    return maps.get(index);
+  }
+
   // @UNSAFE
   /*
    *  Return an array that stores itemId of items rendering in batch
@@ -347,32 +368,65 @@ class Masonry extends React.PureComponent<Props> {
 
     let arrResult: Array<string> = [];
 
-    // ước lượng vị trí item hiện tại đang scroll tới, bị sai nếu như height thật của item sai số quá lớn so với defaultHeight
-    // TODO: solve sai số;
-    const index = Math.floor(scrollTop / 100);
-    // console.log(data[index].login.uuid);
+    const index = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
 
-    /*
-        số lượng item trong view port cần biết item nào đang ở vị trí đầu tiên xuất hiện
-        trong view port + height của nó + lần lượt các item sau nó
-        cho đến khi vị trí của item thứ i > scrollTop + height;
-     */
-    const numOfItemInViewport = height / defaultHeight;
+    const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
 
+    console.log(numOfItemInViewport);
     if (scrollTop < overscanOnPixel) {
       // Top: số lượng item trên top < preRenderCellCount
     } else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
       // Bottom: số lượng item dưới < preRenderCellCount
+      for (let i = index - preRenderCellCount; i < data.length; i++) {
+        arrResult.push(PREFIX + data[i].itemId);
+      }
     } else {
       // Middle
-      for (let i = 0; i < 2 * preRenderCellCount + numOfItemInViewport; i++) {
-        arrResult.push(PREFIX + data[index + i - preRenderCellCount].itemId);
+      for (let i = index - 5; i <= index + numOfItemInViewport + 5; i++) {
+        arrResult.push(PREFIX + data[i].itemId);
       }
     }
 
     return arrResult;
   }
 
+  /*
+   *  Return an array stores all items rendering in viewport.
+   *  @params:
+   *        + scrollTop (number): this masonry position.
+   *        + height (number): viewport's height;
+   *  @return:
+   *        + empty: if scrollTop is out of range or there isn't any items in viewport.
+   *        + (Array<string>): stores all items' id in viewport.
+   */
+  _getItemsInViewport(scrollTop: number, height: number): Array<string> {
+    const itemIdStart = this._getItemIdFromPosition(scrollTop);
+    const results = new Array({});
+
+    if (itemIdStart !== NOT_FOUND) {
+      results.push(itemIdStart);
+
+      // disparity > 0 when scrollTop position is between `the item's position` and `item's position + its height`.
+      const disparity = scrollTop - this._positionMaps.get(itemIdStart);
+
+      let temp = height - disparity;
+      let i = 1;
+      const itemIndex = this._getIndexFromId(itemIdStart);
+      let nextItemHeight = this._renderedCellMaps.get(this._getItemIdFromIndex(itemIndex + i));
+
+      while (temp > nextItemHeight) {
+        temp -= nextItemHeight;
+        results.push(this._getItemIdFromIndex(itemIndex + i));
+        i++;
+        nextItemHeight = this._renderedCellMaps.get(this._getItemIdFromIndex(itemIndex + i));
+      }
+      if (temp > 0) {
+        results.push(this._getItemIdFromIndex(itemIndex + i));
+      }
+    }
+
+    return results;
+  }
 }
 
 export default Masonry;
