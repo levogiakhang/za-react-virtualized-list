@@ -34,6 +34,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
     this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
+    this.onChildChangeHeight(this.props.id, this._cellHeight, this._cellHeight);
     // this.resizeObserver = new ResizeObserver(this.onChildChangeHeight);
     // this.resizeObserver.observe(this._cellMeasurer);
   }
@@ -46,7 +47,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   onChildChangeHeight(itemId, oldHeight, newHeight) {
     // update cellHeight
     this._cellHeight = newHeight;
-    console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
+    // console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
     this.props.onCellChangeHeight(itemId, newHeight);
   }
 
