@@ -241,8 +241,8 @@ class Masonry extends React.PureComponent<Props> {
 
     data.forEach((item) => {
       this._updateItemPositionOnMap(PREFIX + item.itemId, currentPosition);
-      if (this._renderedCellMaps.has(item.itemId)) {
-        currentPosition += this._renderedCellMaps.get(item.itemId);
+      if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
+        currentPosition += this._renderedCellMaps.get(PREFIX + item.itemId);
       } else {
         currentPosition += defaultHeight;
       }

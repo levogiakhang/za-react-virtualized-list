@@ -20,7 +20,7 @@ class DemoList extends React.PureComponent {
 
     this.getData = this.getData.bind(this);
     this._cache = new CellMeasurerCache({
-      defaultHeight: 107,
+      defaultHeight: 120,
       height: 300,
     });
   }
