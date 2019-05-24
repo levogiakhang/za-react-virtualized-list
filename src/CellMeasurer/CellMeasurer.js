@@ -15,7 +15,6 @@ type Props = {
 
 type OnChildChangeHeightCallback = (params: {|
   itemId: string,
-  oldHeight: number,
   newHeight: number
 |}) => void
 
@@ -35,7 +34,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
     this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
-    this.onChildChangeHeight(this.props.id, this._cellHeight, this._cellHeight);
+    this.onChildChangeHeight(this.props.id, this._cellHeight);
     // this.resizeObserver = new ResizeObserver(this.onChildChangeHeight);
     // this.resizeObserver.observe(this._cellMeasurer);
   }
@@ -45,11 +44,11 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   }
 
 
-  onChildChangeHeight(itemId, oldHeight, newHeight) {
+  onChildChangeHeight(itemId, newHeight) {
     // update cellHeight
     this._cellHeight = newHeight;
     // console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
-    this.props.onCellChangeHeight(itemId, oldHeight, newHeight);
+    this.props.onCellChangeHeight(itemId, newHeight);
   }
 
   render() {
@@ -60,8 +59,8 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     if (this._cellMeasurer) {
       const oldHeight = Math.round(this._cellHeight);
       const newHeight = this._cellMeasurer.offsetHeight;
-      if (oldHeight !== newHeight) {
-        this.onChildChangeHeight(id, oldHeight, newHeight);
+      if (this._isChangedHeight(oldHeight, newHeight)) {
+        this.onChildChangeHeight(id, newHeight);
       }
     }
 
@@ -80,6 +79,10 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
   componentDidUpdate() {
     this._cellHeight = this._cellMeasurer.offsetHeight;
+  }
+
+  _isChangedHeight(oldHeight: number, newHeight: number): boolean {
+    return oldHeight !== newHeight;
   }
 
   get getCellHeight(): number {
