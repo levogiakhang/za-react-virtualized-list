@@ -6,7 +6,7 @@ import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 100;
+const DATA_NUMBER = 70;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -15,12 +15,15 @@ class DemoList extends React.PureComponent {
       isLoading: true,
     };
 
+    this.isLoadTopAlready = false;
+    this.isLoadBottomAlready = false;
+
     this.getData = this.getData.bind(this);
     this.loadMoreTop = this.loadMoreTop.bind(this);
     this.loadMoreBottom = this.loadMoreBottom.bind(this);
 
     this._cache = new CellMeasurerCache({
-      defaultHeight: 120,
+      defaultHeight: 300,
       height: 300,
     });
   }
@@ -53,11 +56,13 @@ class DemoList extends React.PureComponent {
 
   loadMoreTop() {
     topData.forEach(item => {dataList.unshift(item)});
+    this.isLoadTopAlready = true;
     this.forceUpdate();
   }
 
   loadMoreBottom() {
     bottomData.forEach(item => dataList.push(item));
+    this.isLoadBottomAlready = true;
     this.forceUpdate();
   }
 
@@ -65,7 +70,7 @@ class DemoList extends React.PureComponent {
     return (
       <Masonry height={500}
                style={{ marginTop: "60px" }}
-               id={'khang'}
+               id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
                preRenderCellCount={5}/>
@@ -75,7 +80,7 @@ class DemoList extends React.PureComponent {
   _renderBtnTop = () => {
     return (
       <div style={{ display: 'flex', paddingTop: "100px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreTop}>
+        <button onClick={this.loadMoreTop} className={this.isLoadTopAlready ? "btn-hidden" : ""}>
           Load more top...
         </button>
       </div>
@@ -85,7 +90,7 @@ class DemoList extends React.PureComponent {
   _renderBtnBottom = () => {
     return (
       <div style={{ display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreBottom}>
+        <button onClick={this.loadMoreBottom} className={this.isLoadBottomAlready ? "btn-hidden" : ""}>
           Load more bottom...
         </button>
       </div>
