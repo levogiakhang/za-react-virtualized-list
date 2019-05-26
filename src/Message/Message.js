@@ -14,6 +14,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
 
     this.state = {
       isExpanded: false,
+      windowWidth: 0,
     };
 
     this._message = undefined;
@@ -22,16 +23,17 @@ export default class Message extends React.PureComponent<MessageProps> implement
     this._newHeight = undefined;
 
     this._onClick = this._onClick.bind(this);
-    this.onChangedHeight = this.onChangedHeight.bind(this);
+    this._onWindowResize = this._onWindowResize.bind(this);
   }
 
   componentDidMount() {
     this._message = ReactDOM.findDOMNode(this);
-    this.componentDidUpdate();
+    window.addEventListener('resize', this._onWindowResize);
+    this._checkChangedHeight();
   }
 
-  onChangedHeight(itemId, newHeight) {
-    this.props.onChangedHeight(itemId, newHeight);
+  _onWindowResize() {
+    this.setState({windowWidth: window.innerWidth});
   }
 
   render() {
@@ -118,7 +120,11 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   componentDidUpdate() {
-    const {id } = this.props;
+    this._checkChangedHeight();
+  }
+
+  _checkChangedHeight() {
+    const {id, onChangedHeight} = this.props;
     const el = document.getElementById(id);
     if (el) {
       let style = getComputedStyle(el, null);
@@ -127,7 +133,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
 
       this._newHeight = this._message.clientHeight + marginTop + marginBottom;
       if (this._oldHeight !== this._newHeight) {
-        this.onChangedHeight(PREFIX + id, this._newHeight);
+        onChangedHeight(PREFIX + id, this._newHeight);
       }
       this._oldHeight = this._newHeight;
     }
