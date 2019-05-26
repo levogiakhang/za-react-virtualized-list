@@ -1,15 +1,13 @@
 import React from 'react';
 import './css/DemoList.css';
-import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
-import Message from "../Message/Message";
-import { bottomData, KhangObjData, ListMessageExample } from '../utils/ListMessageExample';
+import {topData, bottomData, KhangObjData, ListMessageExample, KhangObjDataTop} from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 let message = ListMessageExample;
 
-const DATA_NUMBER = 50;
+const DATA_NUMBER = 10;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -31,6 +29,7 @@ class DemoList extends React.PureComponent {
   async componentDidMount(): void {
     const data = await this.getData();
     data.forEach(item => dataList.push({ itemId: item.login.uuid, ...item }));
+    dataList.unshift(KhangObjDataTop);
     dataList.push(KhangObjData);
     this.setState({ isLoading: false });
   }
@@ -54,7 +53,7 @@ class DemoList extends React.PureComponent {
   }
 
   loadMoreTop() {
-
+    topData.forEach(item => {dataList.unshift(item)});
   }
 
   loadMoreBottom() {

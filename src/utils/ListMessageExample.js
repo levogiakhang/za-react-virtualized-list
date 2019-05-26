@@ -44,6 +44,28 @@ export const KhangObjData = {
       },
   };
 
+export const KhangObjDataTop = {
+  "itemId": 'levogiakhang2912',
+  "name":
+    {
+      "title":"mr",
+      "first":"Khang",
+      "last":"Le"
+    },
+  "login":
+    {
+      "uuid":"levogiakhang123",
+    },
+  "registered":
+    {
+      "date":"2009-01-25T09:51:56Z",
+    },
+  "picture":
+    {
+      "thumbnail":"https://randomuser.me/api/portraits/thumb/men/74.jpg"
+    },
+};
+
 export const bottomData = [
   {
     "itemId": 'levogiakhang1',
