@@ -7,7 +7,6 @@ import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
 import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
 import {ListMessageExample} from "../utils/ListMessageExample";
-import ReactResizeDetector from 'react-resize-detector';
 
 type Props = {
   className?: string,
@@ -29,6 +28,10 @@ class Masonry extends React.Component<Props> {
     };
 
     this._oldScrollTop = undefined;
+    this._oldDataLength = undefined;
+
+    this._currentFirstItemData = undefined;
+    this._oldFirstItemData = undefined;
 
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
@@ -38,6 +41,8 @@ class Masonry extends React.Component<Props> {
 
     // Represents this element.
     this._masonry = undefined;
+
+    this.resizeTimer = undefined;
 
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
@@ -51,18 +56,21 @@ class Masonry extends React.Component<Props> {
     data.forEach((item) => {
       this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
+    this._currentFirstItemData = PREFIX + data[0].itemId;
+    this._oldFirstItemData = this._currentFirstItemData;
   }
 
   componentDidMount() {
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
-    this._masonry.addEventListener('resize', this._onResize);
+    window.addEventListener('resize', this._onResize);
+    this._oldDataLength = this.props.data.length;
   }
 
   componentWillUnmount() {
     this._masonry.removeEventListener('scroll', this._onScroll);
-    this._masonry.removeEventListener('resize', this._onResize);
+    window.removeEventListener('resize', this._onResize);
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
@@ -95,10 +103,11 @@ class Masonry extends React.Component<Props> {
 
     this._updateItemsPosition();
 
+
+
     // console.log(this._positionMaps);
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
-
       switch (typeof data[index]) {
         case "object": {
           const mess = new Message({
@@ -156,22 +165,33 @@ class Masonry extends React.Component<Props> {
              willChange: 'transform',
              ...style
            }}>
-        <ReactResizeDetector handleWidth handleHeight onResize={this._onResize}>
-          <div className="innerScrollContainer"
-               style={{
-                 width: '100%',
-                 height: estimateTotalHeight,
-                 maxWidth: '100%',
-                 maxHeight: estimateTotalHeight,
-                 overflow: 'hidden',
-                 position: 'relative',
-                 pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
-               }}>
-            {children}
-          </div>
-        </ReactResizeDetector>
+        <div className="innerScrollContainer"
+             style={{
+               width: '100%',
+               height: estimateTotalHeight,
+               maxWidth: '100%',
+               maxHeight: estimateTotalHeight,
+               overflow: 'hidden',
+               position: 'relative',
+               pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+             }}>
+          {children}
+        </div>
       </div>
     );
+  }
+
+  componentDidUpdate() {
+    if(this._isJustLoadMoreTop()) {
+      this._scrollToItem(this._oldFirstItemData, this.state.scrollTop);
+      this._oldFirstItemData = this._currentFirstItemData;
+    }
+
+    if (this._oldDataLength !== this.props.data.length) {
+      this._oldDataLength = this.props.data.length;
+    } else {
+
+    }
   }
 
   _onScroll() {
@@ -181,9 +201,17 @@ class Masonry extends React.Component<Props> {
   }
 
   _onResize() {
-    // TODO: update all items' size in _renderedMaps
-    console.log('aaa');
-    // this.forceUpdate();
+    //TODO: resize make viewport jumps to old position, NOT jumps to old item's position
+    clearTimeout(this.resizeTimer);
+    this.resizeTimer = setTimeout(function () {
+      console.log('stopped');
+    }, 1000);
+    const {scrollTop} = this.state;
+    const itemId = this._getItemIdFromPosition(scrollTop);
+    const disparity = scrollTop - this._positionMaps.get(itemId);
+
+    this._calculateItemsPositionFromSpecifiedItem(itemId);
+    this._scrollToItem(itemId, disparity);
   }
 
   _getOldScrollTop(): number {
@@ -380,12 +408,12 @@ class Masonry extends React.Component<Props> {
 
     // Top: số lượng item trên top < preRenderCellCount
     if (scrollTop < overscanOnPixel) {
-      if (numOfItemInViewport + preRenderCellCount >= data.length) {
+      if (numOfItemInViewport + 2 * preRenderCellCount >= data.length) {
         for (let i = 0; i <= data.length - 1; i++) {
           results.push(PREFIX + data[i].itemId);
         }
       } else {
-        for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
+        for (let i = 0; i <= numOfItemInViewport + 2 * preRenderCellCount; i++) {
           results.push(PREFIX + data[i].itemId);
         }
       }
@@ -451,6 +479,20 @@ class Masonry extends React.Component<Props> {
     }
 
     return results;
+  }
+
+  _scrollToItem(itemId: string, disparity) {
+    if (this._positionMaps.has(itemId)) {
+      this.scrollToOffset(this._positionMaps.get(itemId) + disparity);
+    }
+  }
+
+  _isJustLoadMoreTop() {
+    if (this._currentFirstItemData !== PREFIX + this.props.data[0].itemId) {
+      this._currentFirstItemData = PREFIX + this.props.data[0].itemId;
+      return true;
+    }
+    return false;
   }
 }
 
