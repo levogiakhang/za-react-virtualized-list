@@ -6,6 +6,8 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
 import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
+import {ListMessageExample} from "../utils/ListMessageExample";
+import ReactResizeDetector from 'react-resize-detector';
 
 type Props = {
   className?: string,
@@ -54,9 +56,6 @@ class Masonry extends React.Component<Props> {
   componentDidMount() {
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
-    console.log(this.props.data);
-    console.log(this._renderedCellMaps);
-    console.log(this._positionMaps);
     this._masonry.addEventListener('scroll', this._onScroll);
     this._masonry.addEventListener('resize', this._onResize);
   }
@@ -106,7 +105,7 @@ class Masonry extends React.Component<Props> {
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
-            messageContent: 'aafdsafsadfsadfsaf',
+            messageContent: ListMessageExample[20],
             sentTime: data[index].registered.date
           });
 
@@ -157,18 +156,20 @@ class Masonry extends React.Component<Props> {
              willChange: 'transform',
              ...style
            }}>
-        <div className="innerScrollContainer"
-             style={{
-               width: '100%',
-               height: estimateTotalHeight,
-               maxWidth: '100%',
-               maxHeight: estimateTotalHeight,
-               overflow: 'hidden',
-               position: 'relative',
-               pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
-             }}>
-          {children}
-        </div>
+        <ReactResizeDetector handleWidth handleHeight onResize={this._onResize}>
+          <div className="innerScrollContainer"
+               style={{
+                 width: '100%',
+                 height: estimateTotalHeight,
+                 maxWidth: '100%',
+                 maxHeight: estimateTotalHeight,
+                 overflow: 'hidden',
+                 position: 'relative',
+                 pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+               }}>
+            {children}
+          </div>
+        </ReactResizeDetector>
       </div>
     );
   }
@@ -180,8 +181,9 @@ class Masonry extends React.Component<Props> {
   }
 
   _onResize() {
+    // TODO: update all items' size in _renderedMaps
+    console.log('aaa');
     // this.forceUpdate();
-    console.log('resize');
   }
 
   _getOldScrollTop(): number {
@@ -425,7 +427,7 @@ class Masonry extends React.Component<Props> {
    */
   _getItemsInViewport(scrollTop: number, height: number): Array<string> {
     const itemIdStart = this._getItemIdFromPosition(scrollTop);
-    const results = new Array(0) ;
+    const results = new Array(0);
 
     if (itemIdStart !== NOT_FOUND) {
       results.push(itemIdStart);
