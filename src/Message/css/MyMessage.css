@@ -47,6 +47,7 @@ p {
     background-color: azure;
     padding: 10px;
     border-radius: 10px;
+    margin-right: 10px;
 }
 
 .my-message-content-user-name {
@@ -73,4 +74,11 @@ p {
 .my-message-content-sent-time > p {
     color: gray;
     font-size: 1rem;
+}
+
+.my-button-container {
+    padding-right: 10px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
 }

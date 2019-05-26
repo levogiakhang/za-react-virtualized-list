@@ -126,6 +126,7 @@ class Masonry extends React.Component<Props> {
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
+                       isMine={index%2===0}
                        onChangedHeight={this.onChildrenChangeHeight}/>
             </CellMeasurer>
           );

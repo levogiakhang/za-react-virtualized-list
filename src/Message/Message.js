@@ -41,7 +41,17 @@ export default class Message extends React.PureComponent<MessageProps> implement
     return (
       isMine ?
         <div id={id} className="row">
-          <div className="my-message-container">
+          <div className={isExpanded ? "expand-height" : "my-message-container"}>
+
+            <div className={"my-button-container"}>
+              <button className={"red"} onClick={this._onClick}>
+                {isExpanded ?
+                  "Minimize" :
+                  "Expand"
+                }
+              </button>
+            </div>
+
             {/* MESSAGE CONTENT VIEW */}
             <div className="my-message-content-container">
               <div className="my-message-content-user-name">
@@ -95,7 +105,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
             </div>
           </div>
 
-          <div className={"button-container"}>
+          <div className={"their-button-container"}>
             <button className={"red"} onClick={this._onClick}>
               {isExpanded ?
                 "Minimize" :

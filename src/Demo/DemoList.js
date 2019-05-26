@@ -54,10 +54,12 @@ class DemoList extends React.PureComponent {
 
   loadMoreTop() {
     topData.forEach(item => {dataList.unshift(item)});
+    this.forceUpdate();
   }
 
   loadMoreBottom() {
     bottomData.forEach(item => dataList.push(item));
+    this.forceUpdate();
   }
 
   _renderList = (dataList) => {
