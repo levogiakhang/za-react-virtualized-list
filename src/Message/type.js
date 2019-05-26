@@ -4,4 +4,10 @@ export type MessageProps = {
   userName: string,
   messageContent: string,
   sentTime: string,
+  onChangedHeight: OnChangedHeightCallback,
 }
+
+type OnChangedHeightCallback = (params: {|
+  itemId: string,
+  newHeight: number
+|}) => void

@@ -10,13 +10,7 @@ type Props = {
   cache: CellMeasurerCache,
   children: React.Element<*>,
   position: Position,
-  onCellChangeHeight: OnChildChangeHeightCallback,
 }
-
-type OnChildChangeHeightCallback = (params: {|
-  itemId: string,
-  newHeight: number
-|}) => void
 
 export default class CellMeasurer extends React.PureComponent<Props> {
   constructor(props) {
@@ -25,8 +19,6 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     this._cellMeasurer = undefined;
     this._cellHeight = undefined;
     // this.resizeObserver = undefined;
-
-    this.onChildChangeHeight = this.onChildChangeHeight.bind(this);
   }
 
   // _childId: string = this.props.child.getItemId();
@@ -34,7 +26,6 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
     this._cellHeight = this._cellMeasurer.getBoundingClientRect().height;
-    this.onChildChangeHeight(this.props.id, this._cellHeight);
     // this.resizeObserver = new ResizeObserver(this.onChildChangeHeight);
     // this.resizeObserver.observe(this._cellMeasurer);
   }
@@ -43,26 +34,11 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     // this.resizeObserver.disconnect(this._cellMeasurer);
   }
 
-
-  onChildChangeHeight(itemId, newHeight) {
-    // update cellHeight
-    this._cellHeight = newHeight;
-    // console.log('id: ' + itemId + ", old: " + oldHeight + ", new: " + newHeight);
-    this.props.onCellChangeHeight(itemId, newHeight);
-  }
-
   render() {
     const { children, id, position: { top, left } } = this.props;
 
     // detect item height changed
     // TODO: Button on Message click not call re-render -> cellMeasurer not change in DOM tree
-    if (this._cellMeasurer) {
-      const oldHeight = Math.round(this._cellHeight);
-      const newHeight = this._cellMeasurer.offsetHeight;
-      if (this._isChangedHeight(oldHeight, newHeight)) {
-        this.onChildChangeHeight(id, newHeight);
-      }
-    }
 
     return (
       <div id={id}

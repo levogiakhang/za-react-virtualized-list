@@ -1,11 +1,12 @@
 // @flow
 
 import React from 'react';
-import { MessageProps } from './type';
+import {MessageProps} from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
-import type { MessageBase } from "../ModelBase/MessageBase";
-import Masonry from "../Masonry/Masonry";
+import type {MessageBase} from "../ModelBase/MessageBase";
+import {PREFIX} from "../utils/value";
+import * as ReactDOM from "react-dom";
 
 export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
@@ -15,55 +16,28 @@ export default class Message extends React.PureComponent<MessageProps> implement
       isExpanded: false,
     };
 
+    this._message = undefined;
+
+    this._oldHeight = undefined;
+    this._newHeight = undefined;
+
     this._onClick = this._onClick.bind(this);
+    this.onChangedHeight = this.onChangedHeight.bind(this);
   }
 
-  get getItemId(): string {
-    return this.props.id;
+  componentDidMount() {
+    this._message = ReactDOM.findDOMNode(this);
+    this.componentDidUpdate();
   }
 
-  get getUserAvatarUrl(): string {
-    return this.props.userAvatarUrl;
-  }
-
-  get getUserName(): string {
-    return this.props.userName;
-  }
-
-  get getMessageContent(): string {
-    return this.props.messageContent;
-  }
-
-  get getSentTime(): string {
-    return this.props.sentTime;
-  }
-
-  get getIsMine(): boolean {
-    return this.props.isMine;
-  }
-
-  _getDisplayTime = (time): string => {
-    let minutes = time.getMinutes();
-    if (time.getMinutes() < 10) {
-      minutes = '0' + time.getMinutes();
-    }
-    let hours = time.getHours();
-    if (time.getHours() < 10) {
-      hours = '0' + time.getHours();
-    }
-    return hours + ':' + minutes;
-  };
-
-  _onClick() {
-    const { isExpanded } = this.state;
-    isExpanded ?
-      this.setState({ isExpanded: false }) :
-      this.setState({ isExpanded: true })
+  onChangedHeight(itemId, newHeight) {
+    this.props.onChangedHeight(itemId, newHeight);
   }
 
   render() {
-    const { id, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
-    const { isExpanded } = this.state;
+    const {id, userAvatarUrl, userName, messageContent, sentTime, isMine} = this.props;
+    const {isExpanded} = this.state;
+
     return (
       isMine ?
         <div id={id} className="row">
@@ -131,5 +105,64 @@ export default class Message extends React.PureComponent<MessageProps> implement
           </div>
         </div>
     );
+  }
+
+  componentDidUpdate() {
+    const {id } = this.props;
+    const el = document.getElementById(id);
+    if (el) {
+      let style = getComputedStyle(el, null);
+      let marginTop = parseInt(style.marginTop) || 0;
+      let marginBottom = parseInt(style.marginTop) || 0;
+
+      this._newHeight = this._message.clientHeight + marginTop + marginBottom;
+      if (this._oldHeight !== this._newHeight) {
+        this.onChangedHeight(PREFIX + id, this._newHeight);
+      }
+      this._oldHeight = this._newHeight;
+    }
+  }
+
+  get getItemId(): string {
+    return this.props.id;
+  }
+
+  get getUserAvatarUrl(): string {
+    return this.props.userAvatarUrl;
+  }
+
+  get getUserName(): string {
+    return this.props.userName;
+  }
+
+  get getMessageContent(): string {
+    return this.props.messageContent;
+  }
+
+  get getSentTime(): string {
+    return this.props.sentTime;
+  }
+
+  get getIsMine(): boolean {
+    return this.props.isMine;
+  }
+
+  _getDisplayTime = (time): string => {
+    let minutes = time.getMinutes();
+    if (time.getMinutes() < 10) {
+      minutes = '0' + time.getMinutes();
+    }
+    let hours = time.getHours();
+    if (time.getHours() < 10) {
+      hours = '0' + time.getHours();
+    }
+    return hours + ':' + minutes;
+  };
+
+  _onClick() {
+    const {isExpanded} = this.state;
+    isExpanded ?
+      this.setState({isExpanded: false}) :
+      this.setState({isExpanded: true})
   }
 }

@@ -4,10 +4,9 @@ import React from 'react';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
-import PositionCache from './PositionCache';
-import { ListMessageExample } from '../utils/ListMessageExample';
+import {ListMessageExample} from '../utils/ListMessageExample';
 import Message from "../Message/Message";
-import { NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX } from "../utils/value";
+import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
 
 type Props = {
   className?: string,
@@ -45,8 +44,9 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this._getItemsFromOffset = this._getItemsFromOffset.bind(this);
     this.scrollToOffset = this.scrollToOffset.bind(this);
+    this._calculateItemsPositionFromSpecifiedItem = this._calculateItemsPositionFromSpecifiedItem.bind(this);
 
-    const { data, cellMeasurerCache } = this.props;
+    const {data, cellMeasurerCache} = this.props;
     data.forEach((item) => {
       this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
@@ -63,11 +63,6 @@ class Masonry extends React.Component<Props> {
   componentWillUnmount() {
     this._masonry.removeEventListener('scroll', this._onScroll);
     this._masonry.removeEventListener('resize', this._onResize);
-  }
-
-  recomputeCellPositions() {
-    this._positionCache = new PositionCache();
-    this.forceUpdate();
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
@@ -90,9 +85,7 @@ class Masonry extends React.Component<Props> {
       cellMeasurerCache
     } = this.props;
 
-    const { scrollTop } = this.state;
-
-    console.log(data);
+    const {scrollTop} = this.state;
 
     // array item is rendered in the batch.
     const children = [];
@@ -101,10 +94,9 @@ class Masonry extends React.Component<Props> {
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
     this._updateItemsPosition();
-    console.log(this._positionMaps);
-    for (let i = 0; i <= itemsInBatch.length - 1; i++) {
-      // TODO: store all cells to a map.
 
+    // console.log(this._positionMaps);
+    for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
 
       switch (typeof data[index]) {
@@ -120,21 +112,21 @@ class Masonry extends React.Component<Props> {
           const cellMeasurer = new CellMeasurer({
             cache: cellMeasurerCache,
             id: PREFIX + mess.getItemId,
-            position: { top: this._positionMaps.get(itemsInBatch[i]), left: 0 },
+            position: {top: this._positionMaps.get(itemsInBatch[i]), left: 0},
           });
 
           children.push(
             <CellMeasurer cache={cellMeasurer.getCache}
                           id={cellMeasurer.getCellId}
                           key={cellMeasurer.getCellId}
-                          onCellChangeHeight={this.onChildrenChangeHeight}
                           position={cellMeasurer.getCellPosition}>
               <Message id={mess.getItemId}
                        key={mess.getItemId}
                        userAvatarUrl={mess.getUserAvatarUrl}
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
-                       sentTime={mess.getSentTime}/>
+                       sentTime={mess.getSentTime}
+                       onChangedHeight={this.onChildrenChangeHeight}/>
             </CellMeasurer>
           );
           break;
@@ -180,7 +172,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _onScroll() {
-    this.setState({ scrollTop: this._masonry.scrollTop });
+    this.setState({scrollTop: this._masonry.scrollTop});
     // this.forceUpdate();
     // console.log(document.getElementById(this.props.id).scrollTop);
   }
@@ -188,10 +180,6 @@ class Masonry extends React.Component<Props> {
   _onResize() {
     // this.forceUpdate();
     console.log('resize');
-  }
-
-  _onUpdate(key: any) {
-
   }
 
   _getOldScrollTop(): number {
@@ -207,7 +195,7 @@ class Masonry extends React.Component<Props> {
    *  Get total height in estimation.
    */
   _getEstimatedTotalHeight(): number {
-    const { data, cellMeasurerCache } = this.props;
+    const {data, cellMeasurerCache} = this.props;
 
     if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) {
       return data.length * cellMeasurerCache.defaultHeight;
@@ -228,7 +216,7 @@ class Masonry extends React.Component<Props> {
    *  @return:
    *        + void.
    */
-  _setItemOnMap(itemId: string, height: number): void {
+  _setItemOnMap(itemId: string, height: number) {
     this._renderedCellMaps.set(itemId, height);
   }
 
@@ -240,7 +228,7 @@ class Masonry extends React.Component<Props> {
  *  @return:
  *        + void.
  */
-  _setItemPositionOnMap(itemId: string, positionTop: number): void {
+  _setItemPositionOnMap(itemId: string, positionTop: number) {
     this._positionMaps.set(itemId, positionTop);
   }
 
@@ -248,7 +236,7 @@ class Masonry extends React.Component<Props> {
    *  Update all items' position
    */
   _updateItemsPosition() {
-    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
+    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
     let currentPosition = 0;
     data.forEach((item) => {
       this._setItemPositionOnMap(PREFIX + item.itemId, currentPosition);
@@ -272,18 +260,20 @@ class Masonry extends React.Component<Props> {
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
   _calculateItemsPositionFromSpecifiedItem(itemId: string) {
-    const { data } = this.props;
-
+    const {data} = this.props;
+    // console.log('-----------------------');
     let currentItemId = itemId;
     const currentIndex = this._getIndexFromId(itemId);
-    console.log(currentIndex);
 
     for (let i = currentIndex; i < data.length; i++) {
       const currentItemPosition = this._positionMaps.get(currentItemId);
-      const currentItemHeight = this._renderedCellMaps.get(currentItemId);
+      let currentItemHeight = this._renderedCellMaps.get(currentItemId);
       const followingItemId = this._getItemIdFromIndex(i + 1);
-      // TODO: preview wrong itemId
-      this._setItemPositionOnMap(followingItemId, currentItemPosition + currentItemHeight);
+      // console.log('id: ' + currentItemId + ' pos: ' + currentItemPosition + " h: " + currentItemHeight + ' fol: ' + followingItemId);
+      if (followingItemId !== OUT_OF_RANGE) {
+        this._setItemPositionOnMap(followingItemId, currentItemPosition + currentItemHeight);
+        currentItemId = followingItemId;
+      }
     }
   }
 
@@ -313,7 +303,7 @@ class Masonry extends React.Component<Props> {
     for (let key of this._positionMaps.keys()) {
       if (!this._renderedCellMaps.has(key)) return NOT_FOUND;
       if (positionTop >= this._positionMaps.get(key) &&
-        positionTop <= this._positionMaps.get(key) + this._renderedCellMaps.get(key)) {
+        positionTop < this._positionMaps.get(key) + this._renderedCellMaps.get(key)) {
         return key;
       }
     }
@@ -329,7 +319,7 @@ class Masonry extends React.Component<Props> {
  *        + NOT_UNIQUE (-2): if more than 1 item in the array.
  */
   _getIndexFromId(itemId: string): number {
-    const { data } = this.props;
+    const {data} = this.props;
     // only for props.data
     if (data) {
       const results = data.filter((item) => {
@@ -354,10 +344,10 @@ class Masonry extends React.Component<Props> {
    *        + OUT_OF_RANGE (-3): if index out of range of data.
    */
   _getItemIdFromIndex(index: number): string {
-    const { data } = this.props;
+    const {data} = this.props;
     const maps = new Map();
 
-    if (index > data.length || index < 0) return OUT_OF_RANGE;
+    if (index >= data.length || index < 0) return OUT_OF_RANGE;
 
     for (let i = 0; i <= data.length - 1; i++) {
       maps.set(i, PREFIX + data[i].itemId);
@@ -374,13 +364,13 @@ class Masonry extends React.Component<Props> {
    *  @return: an Array<string>
    */
   _getItemsFromOffset(scrollTop: number): Array<string> {
-    const { height, preRenderCellCount, cellMeasurerCache: { defaultHeight }, data } = this.props;
+    const {height, preRenderCellCount, cellMeasurerCache: {defaultHeight}, data} = this.props;
     const overscanOnPixel = defaultHeight * preRenderCellCount;
 
     let results: Array<string> = [];
     // console.log(scrollTop);
     const itemId = this._getItemIdFromPosition(scrollTop);
-    console.log(itemId);
+
     const currentIndex = this._getIndexFromId(itemId);
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
 
