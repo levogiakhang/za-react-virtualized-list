@@ -4,7 +4,6 @@ import React from 'react';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
-import {ListMessageExample} from '../utils/ListMessageExample';
 import Message from "../Message/Message";
 import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
 
@@ -55,7 +54,9 @@ class Masonry extends React.Component<Props> {
   componentDidMount() {
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
-    // this.scrollToOffset(this._getEstimatedTotalHeight() - this.props.height);
+    console.log(this.props.data);
+    console.log(this._renderedCellMaps);
+    console.log(this._positionMaps);
     this._masonry.addEventListener('scroll', this._onScroll);
     this._masonry.addEventListener('resize', this._onResize);
   }
@@ -105,7 +106,7 @@ class Masonry extends React.Component<Props> {
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
-            messageContent: ListMessageExample[20],
+            messageContent: 'aafdsafsadfsadfsaf',
             sentTime: data[index].registered.date
           });
 
@@ -126,7 +127,7 @@ class Masonry extends React.Component<Props> {
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
-                       isMine={index%2===0}
+                       isMine={index % 2 === 0}
                        onChangedHeight={this.onChildrenChangeHeight}/>
             </CellMeasurer>
           );
@@ -377,8 +378,14 @@ class Masonry extends React.Component<Props> {
 
     // Top: số lượng item trên top < preRenderCellCount
     if (scrollTop < overscanOnPixel) {
-      for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
-        results.push(PREFIX + data[i].itemId);
+      if (numOfItemInViewport + preRenderCellCount >= data.length) {
+        for (let i = 0; i <= data.length - 1; i++) {
+          results.push(PREFIX + data[i].itemId);
+        }
+      } else {
+        for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
+          results.push(PREFIX + data[i].itemId);
+        }
       }
     }
 
@@ -407,7 +414,6 @@ class Masonry extends React.Component<Props> {
     return results;
   }
 
-  // TODO: sai => xem lại
   /*
    *  Return an array stores all items rendering in viewport.
    *  @params:
@@ -419,15 +425,14 @@ class Masonry extends React.Component<Props> {
    */
   _getItemsInViewport(scrollTop: number, height: number): Array<string> {
     const itemIdStart = this._getItemIdFromPosition(scrollTop);
-    const results = new Array({});
+    const results = new Array(0) ;
 
     if (itemIdStart !== NOT_FOUND) {
       results.push(itemIdStart);
 
       // disparity > 0 when scrollTop position is between `the item's position` and `item's position + its height`.
       const disparity = scrollTop - this._positionMaps.get(itemIdStart);
-
-      let temp = height - disparity;
+      let temp = height - this._renderedCellMaps.get(itemIdStart) + disparity;
       let i = 1;
       const itemIndex = this._getIndexFromId(itemIdStart);
       let nextItemHeight = this._renderedCellMaps.get(this._getItemIdFromIndex(itemIndex + i));
