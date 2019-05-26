@@ -26,7 +26,7 @@ class Masonry extends React.Component<Props> {
       scrollTop: 0,
     };
 
-    this._oldScrollTop = 0;
+    this._oldScrollTop = undefined;
 
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();

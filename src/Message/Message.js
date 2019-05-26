@@ -72,7 +72,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
               <div className="my-message-avatar-border">
                 <img className="my-message-avatar"
                      src={userAvatarUrl}
-                     alt="Avatar Image"/>
+                     alt="Avatar"/>
               </div>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
             <div className="their-message-avatar-border">
               <img className="their-message-avatar"
                    src={userAvatarUrl}
-                   alt="Avatar Image"/>
+                   alt="Avatar"/>
             </div>
           </div>
 

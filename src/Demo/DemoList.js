@@ -1,13 +1,12 @@
 import React from 'react';
 import './css/DemoList.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
-import {topData, bottomData, KhangObjData, ListMessageExample, KhangObjDataTop} from '../utils/ListMessageExample';
+import {topData, bottomData, KhangObjData, KhangObjDataTop} from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
-let message = ListMessageExample;
 
-const DATA_NUMBER = 10;
+const DATA_NUMBER = 100;
 
 class DemoList extends React.PureComponent {
   constructor(props) {

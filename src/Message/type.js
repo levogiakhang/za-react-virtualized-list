@@ -1,3 +1,8 @@
+type OnChangedHeightCallback = (params: {|
+  itemId: string,
+  newHeight: number
+|}) => void
+
 export type MessageProps = {
   id: string,
   userAvatarUrl: string,
@@ -7,7 +12,3 @@ export type MessageProps = {
   onChangedHeight: OnChangedHeightCallback,
 }
 
-type OnChangedHeightCallback = (params: {|
-  itemId: string,
-  newHeight: number
-|}) => void

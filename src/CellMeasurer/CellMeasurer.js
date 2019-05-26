@@ -2,7 +2,6 @@
 import * as React from 'react';
 import CellMeasurerCache from "./CellMeasurerCache";
 import { Position } from "../utils/types";
-import Masonry from '../Masonry/Masonry'
 import * as ReactDOM from "react-dom";
 
 type Props = {
