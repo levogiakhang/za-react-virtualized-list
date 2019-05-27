@@ -28,7 +28,6 @@ class Masonry extends React.Component<Props> {
     };
 
     this._oldScrollTop = undefined;
-    this._oldDataLength = undefined;
 
     this._currentFirstItemData = undefined;
     this._oldFirstItemData = undefined;
@@ -65,7 +64,6 @@ class Masonry extends React.Component<Props> {
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
     window.addEventListener('resize', this._onResize);
-    this._oldDataLength = this.props.data.length;
   }
 
   componentWillUnmount() {
@@ -185,12 +183,6 @@ class Masonry extends React.Component<Props> {
     if(this._isJustLoadMoreTop()) {
       this._scrollToItem(this._oldFirstItemData, this.state.scrollTop);
       this._oldFirstItemData = this._currentFirstItemData;
-    }
-
-    if (this._oldDataLength !== this.props.data.length) {
-      this._oldDataLength = this.props.data.length;
-    } else {
-
     }
   }
 
