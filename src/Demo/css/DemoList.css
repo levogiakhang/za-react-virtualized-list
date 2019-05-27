@@ -1,3 +1,21 @@
+button {
+  color: white;
+  background-color: #DD4B39;
+  border: 1px #DD4B39 solid;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-weight: bold;
+  font-size: 9pt;
+  outline: none;
+  max-height: 30px;
+  min-width: 80px;
+}
+
+.container {
+  background-color: #DCDCDC;
+  min-height: 100vh;
+}
+
 .even-index {
   height: 200px;
   width: 200px;
@@ -19,4 +37,62 @@
 
 .btn-hidden {
   opacity: 0;
+}
+
+.control-view {
+
+}
+
+.btn-control {
+  background-color: transparent;
+  color: #111E6C;
+  font-size: 1rem;
+  font-weight: 500;
+  min-width: 120px;
+  min-height: 35px;
+  border: 2px solid #111E6C;
+  border-radius: 5px;
+}
+
+.btn-control:hover {
+  background-color: #111E6C;
+  color: white;
+  font-weight: 700;
+}
+
+.btn-add {
+  margin-left: 2rem;
+}
+
+.btn-remove {
+  margin-left: 1.5rem;
+}
+
+.control-view {
+  margin-left: 2rem;
+  display: flex;
+  padding-top: 100px;
+}
+
+.input-demo {
+  min-height: 29px;
+  border-radius: 5px;
+  outline: none;
+  font-size: 1rem;
+}
+
+.input-itemId {
+  padding-left: 0.5rem;
+  min-width: 250px;
+}
+
+.input-index {
+  max-width: 70px;
+  text-align: center;
+  margin-left: 2rem;
+}
+
+.btn-load-more {
+  min-height: 32px;
+  min-width: 150px;
 }

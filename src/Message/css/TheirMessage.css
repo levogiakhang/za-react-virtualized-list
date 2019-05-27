@@ -88,16 +88,3 @@ p {
     align-items: center;
     display: flex;
 }
-
-button {
-    color: white;
-    background-color: #DD4B39;
-    border: 1px #DD4B39 solid;
-    border-radius: 5px;
-    padding: 5px 10px;
-    font-weight: bold;
-    font-size: 9pt;
-    outline: none;
-    max-height: 30px;
-    min-width: 80px;
-}

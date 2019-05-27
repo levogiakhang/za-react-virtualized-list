@@ -1,18 +1,20 @@
 import React from 'react';
 import './css/DemoList.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
-import {topData, bottomData, KhangObjData, KhangObjDataTop} from '../utils/ListMessageExample';
+import {bottomData, itemData, itemDataTop, randomItemData, topData} from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 70;
+const DATA_NUMBER = 40;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
+      moreId: '',
+      moreIndex: 0,
     };
 
     this.isLoadTopAlready = false;
@@ -21,6 +23,13 @@ class DemoList extends React.PureComponent {
     this.getData = this.getData.bind(this);
     this.loadMoreTop = this.loadMoreTop.bind(this);
     this.loadMoreBottom = this.loadMoreBottom.bind(this);
+    this.isIdAlready = this.isIdAlready.bind(this);
+    this.onAddItem = this.onAddItem.bind(this);
+    this.onRemoveItem = this.onRemoveItem.bind(this);
+    this.cloneObject = this.cloneObject.bind(this);
+    this.isInRange = this.isInRange.bind(this);
+    this.handleChangeId = this.handleChangeId.bind(this);
+    this.handleChangeIndex = this.handleChangeIndex.bind(this);
 
     this._cache = new CellMeasurerCache({
       defaultHeight: 300,
@@ -30,10 +39,10 @@ class DemoList extends React.PureComponent {
 
   async componentDidMount(): void {
     const data = await this.getData();
-    data.forEach(item => dataList.push({ itemId: item.login.uuid, ...item }));
-    dataList.unshift(KhangObjDataTop);
-    dataList.push(KhangObjData);
-    this.setState({ isLoading: false });
+    data.forEach(item => dataList.push({itemId: item.login.uuid, ...item}));
+    dataList.unshift(itemDataTop);
+    dataList.push(itemData);
+    this.setState({isLoading: false});
   }
 
   async getData() {
@@ -54,8 +63,22 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
+  handleChangeId = (e) => {
+    this.setState({moreId: e.target.value});
+  };
+
+  handleChangeIndex(e) {
+    if (this.isInRange(e.target.value, 0, dataList.length - 1)) {
+      this.setState({moreIndex: e.target.value});
+    } else {
+      alert('OUT OF RANGE');
+    }
+  };
+
   loadMoreTop() {
-    topData.forEach(item => {dataList.unshift(item)});
+    topData.forEach(item => {
+      dataList.unshift(item)
+    });
     this.isLoadTopAlready = true;
     this.forceUpdate();
   }
@@ -66,10 +89,102 @@ class DemoList extends React.PureComponent {
     this.forceUpdate();
   }
 
+  isIdAlready(id: string): boolean {
+    for (let i = 0; i <= dataList.length - 1; i++) {
+      if (dataList[i].itemId === id) return true;
+    }
+    return false;
+  }
+
+  isInRange(index: number, startIndex: number, endIndex: number): boolean {
+    return index >= startIndex && index <= endIndex;
+  }
+
+  cloneObject(obj) {
+    if (null === obj || "object" !== typeof obj) return obj;
+    let copy = obj.constructor();
+    for (let attr in obj) {
+      if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
+  }
+
+  randomItem(): Object {
+    const result = this.cloneObject(randomItemData);
+    const randomValue = Math.floor(Math.random() * 999 + 1);
+    result.itemId = randomItemData.itemId + randomValue;
+    result.name.first = randomItemData.name.first + randomValue;
+    return result;
+  }
+
+  onAddItem() {
+    const {moreIndex} = this.state;
+    const item = this.randomItem();
+    if (!this.isIdAlready(item.itemId) &&
+      this.isInRange(moreIndex, 0, dataList.length - 1)) {
+      dataList.splice(moreIndex, 0, item);
+      this.forceUpdate();
+    }
+  }
+
+  onRemoveItem() {
+    const {moreId} = this.state;
+    if (this.isIdAlready(moreId)) {
+      let needRemoveItem = {};
+      dataList.forEach((item) => {
+        if (item.itemId === moreId) needRemoveItem = item
+      });
+      dataList.splice(dataList.indexOf(needRemoveItem), 1);
+      this.forceUpdate();
+    } else {
+      alert('This id is NOT available!');
+    }
+  }
+
+  _renderControlView = () => {
+    const {moreId, moreIndex} = this.state;
+    return (
+      <div className={'control-view'}>
+        <input className={'input-demo input-itemId'}
+               type={'text'}
+               placeholder={`Item's id`}
+               value={moreId}
+               onChange={this.handleChangeId}/>
+
+        <input className={'input-demo input-index'}
+               type={'number'}
+               placeholder={`Index`}
+               value={moreIndex}
+               onChange={this.handleChangeIndex}/>
+
+        <button className={'btn-control btn-add'}
+                onClick={this.onAddItem}>
+          Add
+        </button>
+
+        <button className={'btn-control btn-remove'}
+                onClick={this.onRemoveItem}>
+          Remove
+        </button>
+      </div>
+    );
+  };
+
+  _renderBtnTop = () => {
+    return (
+      <div style={{display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end'}}>
+        <button onClick={this.loadMoreTop}
+                className={this.isLoadTopAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
+          Load more top...
+        </button>
+      </div>
+    )
+  };
+
   _renderList = (dataList) => {
     return (
       <Masonry height={500}
-               style={{ marginTop: "60px" }}
+               style={{marginTop: "10px", borderRadius: '5px'}}
                id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
@@ -77,20 +192,11 @@ class DemoList extends React.PureComponent {
     )
   };
 
-  _renderBtnTop = () => {
-    return (
-      <div style={{ display: 'flex', paddingTop: "100px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreTop} className={this.isLoadTopAlready ? "btn-hidden" : ""}>
-          Load more top...
-        </button>
-      </div>
-    )
-  };
-
   _renderBtnBottom = () => {
     return (
-      <div style={{ display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreBottom} className={this.isLoadBottomAlready ? "btn-hidden" : ""}>
+      <div style={{display: 'flex', paddingTop: "20px", paddingRight: '20px', justifyContent: 'flex-end'}}>
+        <button onClick={this.loadMoreBottom}
+                className={this.isLoadBottomAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
           Load more bottom...
         </button>
       </div>
@@ -98,12 +204,13 @@ class DemoList extends React.PureComponent {
   };
 
   render() {
-    const { isLoading } = this.state;
+    const {isLoading} = this.state;
     return (
       isLoading ?
         <div>Loading...</div>
         :
-        <div>
+        <div className={'container'}>
+          {this._renderControlView()}
           {this._renderBtnTop()}
           {this._renderList(dataList)}
           {this._renderBtnBottom()}

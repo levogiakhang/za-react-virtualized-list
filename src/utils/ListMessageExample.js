@@ -22,7 +22,7 @@ export const ListMessageExample = [
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
 ];
 
-export const KhangObjData = {
+export const itemData = {
     "itemId": 'levogiakhang123',
     "name":
       {
@@ -44,8 +44,8 @@ export const KhangObjData = {
       },
   };
 
-export const KhangObjDataTop = {
-  "itemId": 'levogiakhang2912',
+export const itemDataTop = {
+  "itemId": 'levogiakhang410',
   "name":
     {
       "title":"mr",
@@ -491,3 +491,25 @@ export const topData = [
       },
   }
 ];
+
+export const randomItemData = {
+  "itemId": 'levogiakhang',
+  "name":
+    {
+      "title":"mr",
+      "first":"Khang",
+      "last":"Le"
+    },
+  "login":
+    {
+      "uuid":"levogiakhang",
+    },
+  "registered":
+    {
+      "date":"2009-01-25T09:51:56Z",
+    },
+  "picture":
+    {
+      "thumbnail":"https://randomuser.me/api/portraits/thumb/men/74.jpg"
+    },
+};
