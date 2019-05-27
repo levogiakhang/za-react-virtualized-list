@@ -40,7 +40,7 @@ class DemoList extends React.PureComponent {
   async componentDidMount(): void {
     const data = await this.getData();
     data.forEach(item => dataList.push({itemId: item.login.uuid, ...item}));
-    dataList.unshift(itemDataTop);
+    dataList.splice(0, 0, itemDataTop);
     dataList.push(itemData);
     this.setState({isLoading: false});
   }
@@ -77,7 +77,11 @@ class DemoList extends React.PureComponent {
 
   loadMoreTop() {
     topData.forEach(item => {
-      dataList.unshift(item)
+      if (!this.isIdAlready(item.itemId) &&
+        this.isInRange(0, 0, dataList.length - 1)) {
+        dataList.splice(0, 0, item);
+        this.forceUpdate();
+      }
     });
     this.isLoadTopAlready = true;
     this.forceUpdate();

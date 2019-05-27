@@ -6,7 +6,6 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
 import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
-import {ListMessageExample} from "../utils/ListMessageExample";
 
 type Props = {
   className?: string,
@@ -117,7 +116,7 @@ class Masonry extends React.Component<Props> {
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
-            messageContent: ListMessageExample[20],
+            messageContent: data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId,
             sentTime: data[index].registered.date
           });
 
@@ -138,7 +137,7 @@ class Masonry extends React.Component<Props> {
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
-                       isMine={true}
+                       isMine={false}
                        onChangedHeight={this.onChildrenChangeHeight}/>
             </CellMeasurer>
           );
@@ -186,6 +185,7 @@ class Masonry extends React.Component<Props> {
 
   componentDidUpdate() {
     const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+
     // check add or remove item above
     // remove
     if (this._oldDataLength > data.length) {
@@ -405,7 +405,7 @@ class Masonry extends React.Component<Props> {
    */
   _getItemsFromOffset(scrollTop: number): Array<string> {
     const {height, preRenderCellCount, cellMeasurerCache: {defaultHeight}, data} = this.props;
-    const overscanOnPixel = defaultHeight * preRenderCellCount;
+    const overscanOnPixel = Math.min(defaultHeight * preRenderCellCount, this._positionMaps.get(this._getItemIdFromIndex(preRenderCellCount)));
 
     let results: Array<string> = [];
     // console.log(scrollTop);
@@ -413,7 +413,6 @@ class Masonry extends React.Component<Props> {
 
     const currentIndex = this._getIndexFromId(itemId);
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
-
     // Top: số lượng item trên top < preRenderCellCount
     if (scrollTop < overscanOnPixel) {
       if (numOfItemInViewport + 2 * preRenderCellCount >= data.length) {
@@ -421,6 +420,7 @@ class Masonry extends React.Component<Props> {
           results.push(PREFIX + data[i].itemId);
         }
       } else {
+        console.log('t-e');
         for (let i = 0; i <= numOfItemInViewport + 2 * preRenderCellCount; i++) {
           results.push(PREFIX + data[i].itemId);
         }
