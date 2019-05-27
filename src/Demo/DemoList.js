@@ -137,7 +137,7 @@ class DemoList extends React.PureComponent {
       dataList.splice(dataList.indexOf(needRemoveItem), 1);
       this.forceUpdate();
     } else {
-      alert('This id is NOT available!');
+      alert('This ID is NOT available! Please input another!');
     }
   }
 

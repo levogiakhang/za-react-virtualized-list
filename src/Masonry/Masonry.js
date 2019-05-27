@@ -18,6 +18,8 @@ type Props = {
   cellMeasurerCache: CellMeasurerCache,
 };
 
+const CURRENT_ITEM_IN_VIEWPORT = 'currentItemInViewport';
+
 class Masonry extends React.Component<Props> {
   constructor(props) {
     super(props);
@@ -27,10 +29,9 @@ class Masonry extends React.Component<Props> {
       scrollTop: 0,
     };
 
-    this._oldScrollTop = undefined;
-
-    this._currentFirstItemData = undefined;
-    this._oldFirstItemData = undefined;
+    // for add more above
+    this._currentItemInViewport = new Map();
+    this._oldDataLength = undefined;
 
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
@@ -56,7 +57,6 @@ class Masonry extends React.Component<Props> {
       this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
     this._currentFirstItemData = PREFIX + data[0].itemId;
-    this._oldFirstItemData = this._currentFirstItemData;
   }
 
   componentDidMount() {
@@ -64,6 +64,8 @@ class Masonry extends React.Component<Props> {
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
     window.addEventListener('resize', this._onResize);
+    this._oldDataLength = this.props.data.length;
+    console.log(this.props.data);
   }
 
   componentWillUnmount() {
@@ -93,6 +95,11 @@ class Masonry extends React.Component<Props> {
 
     const {scrollTop} = this.state;
 
+    this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
+      itemId: this._getItemIdFromPosition(scrollTop),
+      disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
+    });
+
     // array item is rendered in the batch.
     const children = [];
 
@@ -100,8 +107,6 @@ class Masonry extends React.Component<Props> {
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
 
     this._updateItemsPosition();
-
-
 
     // console.log(this._positionMaps);
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
@@ -133,7 +138,7 @@ class Masonry extends React.Component<Props> {
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
-                       isMine={index % 2 === 0}
+                       isMine={true}
                        onChangedHeight={this.onChildrenChangeHeight}/>
             </CellMeasurer>
           );
@@ -180,9 +185,23 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    if(this._isJustLoadMoreTop()) {
-      this._scrollToItem(this._oldFirstItemData, this.state.scrollTop);
-      this._oldFirstItemData = this._currentFirstItemData;
+    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+    // check add or remove item above
+    // remove
+    if (this._oldDataLength > data.length) {
+      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this._oldDataLength = data.length;
+      // TODO: detect which itemId had removed -> rendered maps need delete the itemId
+    }
+    // add
+    else if (this._oldDataLength < data.length) {
+      // detect which itemId had added -> rendered maps need update the itemId
+      // data.forEach((item) => {
+      //   if (!this._renderedCellMaps.has(item.itemId))
+      //     this._setItemOnMap(PREFIX + item.itemId, defaultHeight);
+      // });
+      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this._oldDataLength = this.props.data.length;
     }
   }
 
@@ -206,28 +225,25 @@ class Masonry extends React.Component<Props> {
     this._scrollToItem(itemId, disparity);
   }
 
-  _getOldScrollTop(): number {
-    return this._oldScrollTop;
-  }
-
-  _setOldScrollTop(currentScrollTop) {
-    this._oldScrollTop = currentScrollTop;
-  }
-
   // @UNSAFE: cellHeight is not updated.
   /*
    *  Get total height in estimation.
    */
   _getEstimatedTotalHeight(): number {
-    const {data, cellMeasurerCache} = this.props;
+    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
 
     if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) {
-      return data.length * cellMeasurerCache.defaultHeight;
+      return data.length * defaultHeight;
     }
 
     let totalHeight = 0;
-    this._renderedCellMaps.forEach((item) => {
-      totalHeight += Math.round(item);
+
+    data.forEach((item) => {
+      if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
+        totalHeight += Math.round(this._renderedCellMaps.get(PREFIX + item.itemId));
+      } else {
+        totalHeight += defaultHeight;
+      }
     });
     return totalHeight;
   }
@@ -477,14 +493,6 @@ class Masonry extends React.Component<Props> {
     if (this._positionMaps.has(itemId)) {
       this.scrollToOffset(this._positionMaps.get(itemId) + disparity);
     }
-  }
-
-  _isJustLoadMoreTop() {
-    if (this._currentFirstItemData !== PREFIX + this.props.data[0].itemId) {
-      this._currentFirstItemData = PREFIX + this.props.data[0].itemId;
-      return true;
-    }
-    return false;
   }
 }
 
