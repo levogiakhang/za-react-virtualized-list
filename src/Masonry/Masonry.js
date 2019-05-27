@@ -218,11 +218,17 @@ class Masonry extends React.Component<Props> {
       console.log('stopped');
     }, 1000);
     const {scrollTop} = this.state;
-    const itemId = this._getItemIdFromPosition(scrollTop);
-    const disparity = scrollTop - this._positionMaps.get(itemId);
+    console.log('s1: ' + scrollTop);
+    this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
+      itemId: this._getItemIdFromPosition(scrollTop),
+      disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
+    });
 
-    this._calculateItemsPositionFromSpecifiedItem(itemId);
-    this._scrollToItem(itemId, disparity);
+    console.log('id: ' + (this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
+    console.log('pos: ' + this._positionMaps.get(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
+    console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+    this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+    console.log('s2: ' + scrollTop);
   }
 
   // @UNSAFE: cellHeight is not updated.
@@ -335,15 +341,20 @@ class Masonry extends React.Component<Props> {
  *        + positionTop (number): position top where wanna get item in this.
  *  @return:
  *        + key (string): itemId.
- *        + NOT_FOUND (-1): if item isn't in the maps.
  *        + OUT_OF_RANGE ('out of range'): if position param is greater than total height.
  */
   _getItemIdFromPosition(positionTop: number): string {
     if (positionTop >= this._getEstimatedTotalHeight()) return OUT_OF_RANGE;
+    let cellHeight = undefined;
     for (let key of this._positionMaps.keys()) {
-      if (!this._renderedCellMaps.has(key)) return NOT_FOUND;
+      if (!this._renderedCellMaps.has(key)) {
+        cellHeight = this.props.cellMeasurerCache.defaultHeight;
+      } else {
+        cellHeight = this._renderedCellMaps.get(key);
+      }
+
       if (positionTop >= this._positionMaps.get(key) &&
-        positionTop < this._positionMaps.get(key) + this._renderedCellMaps.get(key)) {
+        positionTop < this._positionMaps.get(key) + cellHeight) {
         return key;
       }
     }
@@ -410,7 +421,8 @@ class Masonry extends React.Component<Props> {
     let results: Array<string> = [];
     // console.log(scrollTop);
     const itemId = this._getItemIdFromPosition(scrollTop);
-
+    console.log(scrollTop);
+    console.log(itemId);
     const currentIndex = this._getIndexFromId(itemId);
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
     // Top: số lượng item trên top < preRenderCellCount
@@ -420,7 +432,6 @@ class Masonry extends React.Component<Props> {
           results.push(PREFIX + data[i].itemId);
         }
       } else {
-        console.log('t-e');
         for (let i = 0; i <= numOfItemInViewport + 2 * preRenderCellCount; i++) {
           results.push(PREFIX + data[i].itemId);
         }
