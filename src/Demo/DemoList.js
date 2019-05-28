@@ -13,7 +13,6 @@ class DemoList extends React.PureComponent {
     super(props);
     this.state = {
       isLoading: true,
-      moreId: '',
       moreIndex: 0,
     };
 
@@ -25,10 +24,8 @@ class DemoList extends React.PureComponent {
     this.loadMoreBottom = this.loadMoreBottom.bind(this);
     this.isIdAlready = this.isIdAlready.bind(this);
     this.onAddItem = this.onAddItem.bind(this);
-    this.onRemoveItem = this.onRemoveItem.bind(this);
     this.cloneObject = this.cloneObject.bind(this);
     this.isInRange = this.isInRange.bind(this);
-    this.handleChangeId = this.handleChangeId.bind(this);
     this.handleChangeIndex = this.handleChangeIndex.bind(this);
 
     this._cache = new CellMeasurerCache({
@@ -63,10 +60,6 @@ class DemoList extends React.PureComponent {
       .catch(error => console.log(error));
   }
 
-  handleChangeId = (e) => {
-    this.setState({moreId: e.target.value});
-  };
-
   handleChangeIndex(e) {
     if (this.isInRange(e.target.value, 0, dataList.length - 1)) {
       this.setState({moreIndex: e.target.value});
@@ -84,7 +77,6 @@ class DemoList extends React.PureComponent {
       }
     });
     this.isLoadTopAlready = true;
-    this.forceUpdate();
   }
 
   loadMoreBottom() {
@@ -131,30 +123,10 @@ class DemoList extends React.PureComponent {
     }
   }
 
-  onRemoveItem() {
-    const {moreId} = this.state;
-    if (this.isIdAlready(moreId)) {
-      let needRemoveItem = {};
-      dataList.forEach((item) => {
-        if (item.itemId === moreId) needRemoveItem = item
-      });
-      dataList.splice(dataList.indexOf(needRemoveItem), 1);
-      this.forceUpdate();
-    } else {
-      alert('This ID is NOT available! Please input another!');
-    }
-  }
-
   _renderControlView = () => {
-    const {moreId, moreIndex} = this.state;
+    const {moreIndex} = this.state;
     return (
       <div className={'control-view'}>
-        <input className={'input-demo input-itemId'}
-               type={'text'}
-               placeholder={`Item's id`}
-               value={moreId}
-               onChange={this.handleChangeId}/>
-
         <input className={'input-demo input-index'}
                type={'number'}
                placeholder={`Index`}
@@ -163,13 +135,15 @@ class DemoList extends React.PureComponent {
 
         <button className={'btn-control btn-add'}
                 onClick={this.onAddItem}>
-          Add
+          Add new item at
         </button>
 
-        <button className={'btn-control btn-remove'}
-                onClick={this.onRemoveItem}>
-          Remove
+
+        <button className={'btn-control btn-add'}
+                onClick={this.onAddItem}>
+          Remove item at
         </button>
+
       </div>
     );
   };
@@ -192,7 +166,7 @@ class DemoList extends React.PureComponent {
                id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={5}/>
+               preRenderCellCount={2}/>
     )
   };
 

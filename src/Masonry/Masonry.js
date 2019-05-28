@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import {NOT_FOUND, NOT_UNIQUE, OUT_OF_RANGE, PREFIX} from "../utils/value";
+import {NOT_FOUND, OUT_OF_RANGE, PREFIX} from "../utils/value";
 
 type Props = {
   className?: string,
@@ -49,7 +49,8 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this._getItemsFromOffset = this._getItemsFromOffset.bind(this);
     this.scrollToOffset = this.scrollToOffset.bind(this);
-    this._calculateItemsPositionFromSpecifiedItem = this._calculateItemsPositionFromSpecifiedItem.bind(this);
+    this._updateItemsPositionFromSpecifiedItem = this._updateItemsPositionFromSpecifiedItem.bind(this);
+    this.onRemoveItem = this.onRemoveItem.bind(this);
 
     const {data, cellMeasurerCache} = this.props;
     data.forEach((item) => {
@@ -65,6 +66,7 @@ class Masonry extends React.Component<Props> {
     window.addEventListener('resize', this._onResize);
     this._oldDataLength = this.props.data.length;
     console.log(this.props.data);
+    this._updateItemsPosition();
   }
 
   componentWillUnmount() {
@@ -104,10 +106,10 @@ class Masonry extends React.Component<Props> {
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
-
-    this._updateItemsPosition();
-
+    // console.log(data);
     // console.log(this._positionMaps);
+    // console.log(this._renderedCellMaps);
+
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
       switch (typeof data[index]) {
@@ -138,7 +140,8 @@ class Masonry extends React.Component<Props> {
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
                        isMine={false}
-                       onChangedHeight={this.onChildrenChangeHeight}/>
+                       onChangedHeight={this.onChildrenChangeHeight}
+                       onRemoveItem={this.onRemoveItem}/>
             </CellMeasurer>
           );
           break;
@@ -162,6 +165,8 @@ class Masonry extends React.Component<Props> {
              overflowX: 'hidden',
              overflowY: estimateTotalHeight < height ? 'hidden' : 'auto',
              width: 'auto',
+             minWidth: '550px',
+             minHeight: '500px',
              height: height,
              position: 'relative',
              willChange: 'transform',
@@ -189,8 +194,8 @@ class Masonry extends React.Component<Props> {
     // check add or remove item above
     // remove
     if (this._oldDataLength > data.length) {
-      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-      this._oldDataLength = data.length;
+      // this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      // this._oldDataLength = data.length;
       // TODO: detect which itemId had removed -> rendered maps need delete the itemId
     }
     // add
@@ -199,7 +204,9 @@ class Masonry extends React.Component<Props> {
       // data.forEach((item) => {
       //   if (!this._renderedCellMaps.has(item.itemId))
       //     this._setItemOnMap(PREFIX + item.itemId, defaultHeight);
-      // });
+      // }
+      console.log('a');
+      console.log(this._positionMaps);
       this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
       this._oldDataLength = this.props.data.length;
     }
@@ -207,8 +214,6 @@ class Masonry extends React.Component<Props> {
 
   _onScroll() {
     this.setState({scrollTop: this._masonry.scrollTop});
-    // this.forceUpdate();
-    // console.log(document.getElementById(this.props.id).scrollTop);
   }
 
   _onResize() {
@@ -278,6 +283,20 @@ class Masonry extends React.Component<Props> {
     this._positionMaps.set(itemId, positionTop);
   }
 
+  onRemoveItem(itemId: string) {
+    const itemIndex = this._getIndexFromId(itemId);
+
+    // remove an item means this item has new height equals 0
+    this._updateItemsPositionWhenItemChangedHeight(itemId, 0);
+
+    // Remove item on data list, rendered maps and position maps
+    this.props.data.splice(itemIndex, 1);
+    this._renderedCellMaps.delete(itemId);
+    this._positionMaps.delete(itemId);
+
+    this.forceUpdate();
+  }
+
   /*
    *  Update all items' position
    */
@@ -299,13 +318,13 @@ class Masonry extends React.Component<Props> {
    */
   _updateItemsPositionWhenItemChangedHeight(itemId: string, newHeight: number) {
     this._setItemOnMap(itemId, newHeight);
-    this._calculateItemsPositionFromSpecifiedItem(itemId);
+    this._updateItemsPositionFromSpecifiedItem(itemId);
   }
 
   /*
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
-  _calculateItemsPositionFromSpecifiedItem(itemId: string) {
+  _updateItemsPositionFromSpecifiedItem(itemId: string) {
     const {data} = this.props;
     // console.log('-----------------------');
     let currentItemId = itemId;
@@ -365,9 +384,8 @@ class Masonry extends React.Component<Props> {
  *  @param:
  *        + itemId (string): identification of item. This id is unique for each item in array.
  *  @return:
- *        + (number): a value represents index of that item in the array.
+ *        + (number): a value represents index of that item in the array. In case the result has more than one, return the first item.
  *        + NOT_FOUND (-1): if item isn't in the array.
- *        + NOT_UNIQUE (-2): if more than 1 item in the array.
  */
   _getIndexFromId(itemId: string): number {
     const {data} = this.props;
@@ -378,8 +396,6 @@ class Masonry extends React.Component<Props> {
       });
       if (results.length === 0) {
         return NOT_FOUND;
-      } else if (results.length > 1) {
-        return NOT_UNIQUE;
       } else {
         return data.indexOf(results[0]);
       }
@@ -421,9 +437,11 @@ class Masonry extends React.Component<Props> {
     let results: Array<string> = [];
     // console.log(scrollTop);
     const itemId = this._getItemIdFromPosition(scrollTop);
-    console.log(scrollTop);
-    console.log(itemId);
     const currentIndex = this._getIndexFromId(itemId);
+    // console.log('offset: top ' + scrollTop);
+    //console.log('offset: id ' + itemId);
+    //console.log('offset: cur ' + currentIndex);
+
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
     // Top: số lượng item trên top < preRenderCellCount
     if (scrollTop < overscanOnPixel) {
@@ -432,7 +450,7 @@ class Masonry extends React.Component<Props> {
           results.push(PREFIX + data[i].itemId);
         }
       } else {
-        for (let i = 0; i <= numOfItemInViewport + 2 * preRenderCellCount; i++) {
+        for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
           results.push(PREFIX + data[i].itemId);
         }
       }

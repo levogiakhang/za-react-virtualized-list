@@ -23,6 +23,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
     this._newHeight = undefined;
 
     this._onClick = this._onClick.bind(this);
+    this._onRemove = this._onRemove.bind(this);
     this._onWindowResize = this._onWindowResize.bind(this);
   }
 
@@ -114,6 +115,10 @@ export default class Message extends React.PureComponent<MessageProps> implement
                 "Expand"
               }
             </button>
+
+            <button style={{marginLeft: "10px"}} onClick={this._onRemove}>
+              Remove
+            </button>
           </div>
         </div>
     );
@@ -180,5 +185,9 @@ export default class Message extends React.PureComponent<MessageProps> implement
     isExpanded ?
       this.setState({isExpanded: false}) :
       this.setState({isExpanded: true})
+  }
+
+  _onRemove() {
+    this.props.onRemoveItem(PREFIX + this.props.id);
   }
 }
