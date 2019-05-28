@@ -14,6 +14,7 @@ button {
 .container {
   background-color: #DCDCDC;
   min-height: 100vh;
+  min-width: 550px;
 }
 
 .even-index {

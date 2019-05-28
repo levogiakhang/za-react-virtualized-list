@@ -29,7 +29,7 @@ class DemoList extends React.PureComponent {
     this.handleChangeIndex = this.handleChangeIndex.bind(this);
 
     this._cache = new CellMeasurerCache({
-      defaultHeight: 300,
+      defaultHeight: 191,
       height: 300,
     });
   }
@@ -138,12 +138,6 @@ class DemoList extends React.PureComponent {
           Add new item at
         </button>
 
-
-        <button className={'btn-control btn-add'}
-                onClick={this.onAddItem}>
-          Remove item at
-        </button>
-
       </div>
     );
   };
@@ -166,7 +160,7 @@ class DemoList extends React.PureComponent {
                id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={2}/>
+               preRenderCellCount={3}/>
     )
   };
 

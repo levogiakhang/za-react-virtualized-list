@@ -75,6 +75,9 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
+    const {scrollTop} = this.state;
+    const firstItemInViewport = this._getItemIdFromPosition(scrollTop);
+    const disparity = scrollTop - this._getPositionOfItem(firstItemInViewport);
     this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
     this.forceUpdate();
   }
@@ -101,14 +104,21 @@ class Masonry extends React.Component<Props> {
       disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
     });
 
+    if (this._oldDataLength < data.length) {
+      // update rendered maps when data has added more.
+      data.forEach((item) => {
+        if (!this._renderedCellMaps.has(PREFIX + item.itemId)) {
+          this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
+        }
+      });
+      this._updateItemsPosition();
+    }
+
     // array item is rendered in the batch.
     const children = [];
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
-    // console.log(data);
-    // console.log(this._positionMaps);
-    // console.log(this._renderedCellMaps);
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
@@ -118,7 +128,7 @@ class Masonry extends React.Component<Props> {
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
-            messageContent: data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId,
+            messageContent: data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId,
             sentTime: data[index].registered.date
           });
 
@@ -189,27 +199,14 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+    const {data} = this.props;
 
     // check add or remove item above
     // remove
-    if (this._oldDataLength > data.length) {
-      // this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-      // this._oldDataLength = data.length;
-      // TODO: detect which itemId had removed -> rendered maps need delete the itemId
-    }
-    // add
-    else if (this._oldDataLength < data.length) {
-      // detect which itemId had added -> rendered maps need update the itemId
-      // data.forEach((item) => {
-      //   if (!this._renderedCellMaps.has(item.itemId))
-      //     this._setItemOnMap(PREFIX + item.itemId, defaultHeight);
-      // }
-      console.log('a');
-      console.log(this._positionMaps);
+    if (this._oldDataLength !== data.length) {
       this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-      this._oldDataLength = this.props.data.length;
     }
+    this._oldDataLength = data.length;
   }
 
   _onScroll() {
@@ -220,20 +217,20 @@ class Masonry extends React.Component<Props> {
     //TODO: resize make viewport jumps to old position, NOT jumps to old item's position
     clearTimeout(this.resizeTimer);
     this.resizeTimer = setTimeout(function () {
-      console.log('stopped');
+      // console.log('stopped');
     }, 1000);
     const {scrollTop} = this.state;
-    console.log('s1: ' + scrollTop);
+    // console.log('s1: ' + scrollTop);
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
       itemId: this._getItemIdFromPosition(scrollTop),
       disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
     });
 
-    console.log('id: ' + (this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
-    console.log('pos: ' + this._positionMaps.get(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
-    console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+    // console.log('id: ' + (this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
+    // console.log('pos: ' + this._positionMaps.get(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
+    // console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
     this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-    console.log('s2: ' + scrollTop);
+    // console.log('s2: ' + scrollTop);
   }
 
   // @UNSAFE: cellHeight is not updated.
@@ -435,12 +432,8 @@ class Masonry extends React.Component<Props> {
     const overscanOnPixel = Math.min(defaultHeight * preRenderCellCount, this._positionMaps.get(this._getItemIdFromIndex(preRenderCellCount)));
 
     let results: Array<string> = [];
-    // console.log(scrollTop);
     const itemId = this._getItemIdFromPosition(scrollTop);
     const currentIndex = this._getIndexFromId(itemId);
-    // console.log('offset: top ' + scrollTop);
-    //console.log('offset: id ' + itemId);
-    //console.log('offset: cur ' + currentIndex);
 
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
     // Top: số lượng item trên top < preRenderCellCount

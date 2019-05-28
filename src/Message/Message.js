@@ -33,6 +33,10 @@ export default class Message extends React.PureComponent<MessageProps> implement
     this._checkChangedHeight();
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onWindowResize);
+  }
+
   _onWindowResize() {
     this.setState({windowWidth: window.innerWidth});
   }
