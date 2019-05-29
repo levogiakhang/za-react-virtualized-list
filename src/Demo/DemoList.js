@@ -6,7 +6,7 @@ import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 100;
+const DATA_NUMBER = 1000;
 
 class DemoList extends React.PureComponent {
   constructor(props) {

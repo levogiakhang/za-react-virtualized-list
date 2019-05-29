@@ -32,6 +32,12 @@ class Masonry extends React.Component<Props> {
     this._currentItemInViewport = new Map();
     this._oldDataLength = undefined;
 
+    this._resizeMap = new Map();
+
+    this._mapIndexToId = new Map();
+    this._mapIdToIndex = new Map();
+
+
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
 
@@ -59,13 +65,15 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidMount() {
+    const { data } = this.props;
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
     window.addEventListener('resize', this._onResize);
-    this._oldDataLength = this.props.data.length;
-    console.log(this.props.data);
+    this._oldDataLength = data.length;
+    console.log(data);
     this._updateItemsPosition();
+    this._updateMapIndex(0, data.length);
   }
 
   componentWillUnmount() {
@@ -74,13 +82,13 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
-    console.log(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId);
-    console.log(this._getItemIdFromPosition(this.state.scrollTop));
+    //console.log(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId);
+    //console.log(this._getItemIdFromPosition(this.state.scrollTop));
     const disparity = this.state.scrollTop - this._positionMaps.get(this._getItemIdFromPosition(this.state.scrollTop));
-    console.log(disparity);
+    //console.log(disparity);
     this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
     this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, disparity);
-    console.log('scr');
+    //console.log('scr');
     this.forceUpdate();
   }
 
@@ -113,12 +121,13 @@ class Masonry extends React.Component<Props> {
           this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
         }
       });
+      this._updateMapIndex(0, data.length);
       this._updateItemsPosition();
     }
 
     // array item is rendered in the batch.
     const children = [];
-    console.log(this._currentItemInViewport);
+    //console.log(this._currentItemInViewport);
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
@@ -128,7 +137,7 @@ class Masonry extends React.Component<Props> {
       switch (typeof data[index]) {
         case "object": {
           const mess = new Message({
-            id: 'msg_' + data[index].itemId,
+            id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
             messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId,
@@ -208,7 +217,10 @@ class Masonry extends React.Component<Props> {
     // remove
     if (this._oldDataLength !== data.length) {
       this._oldDataLength = data.length;
-      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this._scrollToItem(
+        this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+        this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
+      );
     }
   }
 
@@ -219,20 +231,24 @@ class Masonry extends React.Component<Props> {
   _onResize() {
     //TODO: resize make viewport jumps to old position, NOT jumps to old item's position
     clearTimeout(this.resizeTimer);
-    this.resizeTimer = setTimeout(function () {
-      // console.log('stopped');
-    }, 1000);
+    this.resizeTimer = setTimeout(() => {
+      // this._resizeMap.set('resize', {
+      //   itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+      //   disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
+      // });
+    }, 500);
     const { scrollTop } = this.state;
-    // console.log('s1: ' + scrollTop);
-    this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
-      itemId: this._getItemIdFromPosition(scrollTop),
-      disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
-    });
+
+    if (this._resizeMap.size === 0)
+      this._resizeMap.set('resize', {
+        itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+        disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
+      });
 
     // console.log('id: ' + (this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
     // console.log('pos: ' + this._positionMaps.get(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
     // console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-    this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+    // this._scrollToItem(this._resizeMap.get('resize').itemId, this._resizeMap.get('resize').disparity);
     // console.log('s2: ' + scrollTop);
   }
 
@@ -284,17 +300,27 @@ class Masonry extends React.Component<Props> {
   }
 
   onRemoveItem(itemId: string) {
+    const { data } = this.props;
     const itemIndex = this._getIndexFromId(itemId);
-
     // remove an item means this item has new height equals 0
     this._updateItemsPositionWhenItemChangedHeight(itemId, 0);
 
     // Remove item on data list, rendered maps and position maps
-    this.props.data.splice(itemIndex, 1);
+    data.splice(itemIndex, 1);
+    this._mapIdToIndex.delete(itemId);
+    this._updateMapIndex(itemIndex, data.length);
     this._renderedCellMaps.delete(itemId);
     this._positionMaps.delete(itemId);
-
+    this._mapIndexToId.delete(data.length);
     this.forceUpdate();
+  }
+
+  _updateMapIndex(startIndex: number, endIndex: number) {
+    const { data } = this.props;
+    for (let i = startIndex; i <= endIndex - 1; i++) {
+      this._mapIndexToId.set(i, data[i].itemId);
+      this._mapIdToIndex.set(data[i].itemId, i);
+    }
   }
 
   /*
@@ -389,18 +415,7 @@ class Masonry extends React.Component<Props> {
  *        + NOT_FOUND (-1): if item isn't in the array.
  */
   _getIndexFromId(itemId: string): number {
-    const { data } = this.props;
-    // only for props.data
-    if (data) {
-      const results = data.filter((item) => {
-        return item.itemId === itemId
-      });
-      if (results.length === 0) {
-        return NOT_FOUND;
-      } else {
-        return data.indexOf(results[0]);
-      }
-    }
+    return this._mapIdToIndex.has(itemId) ? this._mapIdToIndex.get(itemId) : NOT_FOUND;
   }
 
   /*
@@ -412,16 +427,8 @@ class Masonry extends React.Component<Props> {
    *        + OUT_OF_RANGE (-3): if index out of range of data.
    */
   _getItemIdFromIndex(index: number): string {
-    const { data } = this.props;
-    const maps = new Map();
-
-    if (index >= data.length || index < 0) return OUT_OF_RANGE;
-
-    for (let i = 0; i <= data.length - 1; i++) {
-      maps.set(i, data[i].itemId);
-    }
-
-    return maps.get(index);
+    if (index >= this.props.data.length || index < 0) return OUT_OF_RANGE;
+    return this._mapIndexToId.get(index);
   }
 
   // @UNSAFE
