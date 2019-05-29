@@ -34,9 +34,11 @@ class Masonry extends React.Component<Props> {
 
     this._resizeMap = new Map();
 
+    // A map stores `index -> itemId`
     this._mapIndexToId = new Map();
-    this._mapIdToIndex = new Map();
 
+    // A map stores `itemId -> index`
+    this._mapIdToIndex = new Map();
 
     // A map stores `itemId -> height` of rendered items.
     this._renderedCellMaps = new Map();
