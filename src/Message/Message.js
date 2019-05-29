@@ -5,7 +5,6 @@ import {MessageProps} from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
 import type {MessageBase} from "../ModelBase/MessageBase";
-import {PREFIX} from "../utils/value";
 
 export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
@@ -153,6 +152,6 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   _onRemove() {
-    this.props.onRemoveItem(PREFIX + this.props.id);
+    this.props.onRemoveItem(this.props.id);
   }
 }

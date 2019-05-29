@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import {NOT_FOUND, OUT_OF_RANGE, PREFIX} from "../utils/value";
+import { NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
 
 type Props = {
   className?: string,
@@ -52,9 +52,9 @@ class Masonry extends React.Component<Props> {
     this._updateItemsPositionFromSpecifiedItem = this._updateItemsPositionFromSpecifiedItem.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
 
-    const {data, cellMeasurerCache} = this.props;
+    const { data, cellMeasurerCache } = this.props;
     data.forEach((item) => {
-      this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
+      this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
     });
   }
 
@@ -99,7 +99,7 @@ class Masonry extends React.Component<Props> {
       cellMeasurerCache
     } = this.props;
 
-    const {scrollTop} = this.state;
+    const { scrollTop } = this.state;
 
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
       itemId: this._getItemIdFromPosition(scrollTop),
@@ -109,8 +109,8 @@ class Masonry extends React.Component<Props> {
     if (this._oldDataLength < data.length) {
       // update rendered maps when data has added more.
       data.forEach((item) => {
-        if (!this._renderedCellMaps.has(PREFIX + item.itemId)) {
-          this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
+        if (!this._renderedCellMaps.has(item.itemId)) {
+          this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
         }
       });
       this._updateItemsPosition();
@@ -128,7 +128,7 @@ class Masonry extends React.Component<Props> {
       switch (typeof data[index]) {
         case "object": {
           const mess = new Message({
-            id: data[index].itemId,
+            id: 'msg_' + data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
             messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId,
@@ -137,8 +137,8 @@ class Masonry extends React.Component<Props> {
 
           const cellMeasurer = new CellMeasurer({
             cache: cellMeasurerCache,
-            id: PREFIX + mess.getItemId,
-            position: {top: this._positionMaps.get(itemsInBatch[i]), left: 0},
+            id: data[index].itemId,
+            position: { top: this._positionMaps.get(itemsInBatch[i]), left: 0 },
           });
 
           children.push(
@@ -202,7 +202,7 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const {data} = this.props;
+    const { data } = this.props;
 
     // check add or remove item above
     // remove
@@ -213,7 +213,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _onScroll() {
-    this.setState({scrollTop: this._masonry.scrollTop});
+    this.setState({ scrollTop: this._masonry.scrollTop });
   }
 
   _onResize() {
@@ -222,7 +222,7 @@ class Masonry extends React.Component<Props> {
     this.resizeTimer = setTimeout(function () {
       // console.log('stopped');
     }, 1000);
-    const {scrollTop} = this.state;
+    const { scrollTop } = this.state;
     // console.log('s1: ' + scrollTop);
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
       itemId: this._getItemIdFromPosition(scrollTop),
@@ -241,7 +241,7 @@ class Masonry extends React.Component<Props> {
    *  Get total height in estimation.
    */
   _getEstimatedTotalHeight(): number {
-    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
 
     if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) {
       return data.length * defaultHeight;
@@ -250,8 +250,8 @@ class Masonry extends React.Component<Props> {
     let totalHeight = 0;
 
     data.forEach((item) => {
-      if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
-        totalHeight += Math.round(this._renderedCellMaps.get(PREFIX + item.itemId));
+      if (this._renderedCellMaps.has(item.itemId)) {
+        totalHeight += Math.round(this._renderedCellMaps.get(item.itemId));
       } else {
         totalHeight += defaultHeight;
       }
@@ -301,12 +301,12 @@ class Masonry extends React.Component<Props> {
    *  Update all items' position
    */
   _updateItemsPosition() {
-    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
     let currentPosition = 0;
     data.forEach((item) => {
-      this._setItemPositionOnMap(PREFIX + item.itemId, currentPosition);
-      if (this._renderedCellMaps.has(PREFIX + item.itemId)) {
-        currentPosition += this._renderedCellMaps.get(PREFIX + item.itemId);
+      this._setItemPositionOnMap(item.itemId, currentPosition);
+      if (this._renderedCellMaps.has(item.itemId)) {
+        currentPosition += this._renderedCellMaps.get(item.itemId);
       } else {
         currentPosition += defaultHeight;
       }
@@ -325,7 +325,7 @@ class Masonry extends React.Component<Props> {
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
   _updateItemsPositionFromSpecifiedItem(itemId: string) {
-    const {data} = this.props;
+    const { data } = this.props;
     // console.log('-----------------------');
     let currentItemId = itemId;
     const currentIndex = this._getIndexFromId(itemId);
@@ -389,11 +389,11 @@ class Masonry extends React.Component<Props> {
  *        + NOT_FOUND (-1): if item isn't in the array.
  */
   _getIndexFromId(itemId: string): number {
-    const {data} = this.props;
+    const { data } = this.props;
     // only for props.data
     if (data) {
       const results = data.filter((item) => {
-        return PREFIX + item.itemId === itemId
+        return item.itemId === itemId
       });
       if (results.length === 0) {
         return NOT_FOUND;
@@ -412,13 +412,13 @@ class Masonry extends React.Component<Props> {
    *        + OUT_OF_RANGE (-3): if index out of range of data.
    */
   _getItemIdFromIndex(index: number): string {
-    const {data} = this.props;
+    const { data } = this.props;
     const maps = new Map();
 
     if (index >= data.length || index < 0) return OUT_OF_RANGE;
 
     for (let i = 0; i <= data.length - 1; i++) {
-      maps.set(i, PREFIX + data[i].itemId);
+      maps.set(i, data[i].itemId);
     }
 
     return maps.get(index);
@@ -432,7 +432,7 @@ class Masonry extends React.Component<Props> {
    *  @return: an Array<string>
    */
   _getItemsFromOffset(scrollTop: number): Array<string> {
-    const {height, preRenderCellCount, cellMeasurerCache: {defaultHeight}, data} = this.props;
+    const { height, preRenderCellCount, cellMeasurerCache: { defaultHeight }, data } = this.props;
     const overscanOnPixel = Math.min(defaultHeight * preRenderCellCount, this._positionMaps.get(this._getItemIdFromIndex(preRenderCellCount)));
 
     let results: Array<string> = [];
@@ -444,11 +444,11 @@ class Masonry extends React.Component<Props> {
     if (scrollTop < overscanOnPixel) {
       if (numOfItemInViewport + 2 * preRenderCellCount >= data.length) {
         for (let i = 0; i <= data.length - 1; i++) {
-          results.push(PREFIX + data[i].itemId);
+          results.push(data[i].itemId);
         }
       } else {
         for (let i = Math.max(0, currentIndex - preRenderCellCount); i <= numOfItemInViewport + preRenderCellCount; i++) {
-          results.push(PREFIX + data[i].itemId);
+          results.push(data[i].itemId);
         }
       }
     }
@@ -456,7 +456,7 @@ class Masonry extends React.Component<Props> {
     // Bottom: số lượng item dưới < preRenderCellCount
     else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
       for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
-        results.push(PREFIX + data[i].itemId);
+        results.push(data[i].itemId);
       }
     }
 
@@ -464,13 +464,13 @@ class Masonry extends React.Component<Props> {
     else {
       if (currentIndex + numOfItemInViewport + preRenderCellCount >= data.length) {
         for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
-          results.push(PREFIX + data[i].itemId);
+          results.push(data[i].itemId);
         }
       } else {
         for (let i = Math.max(0, currentIndex - preRenderCellCount);
              i <= currentIndex + numOfItemInViewport + preRenderCellCount;
              i++) {
-          results.push(PREFIX + data[i].itemId);
+          results.push(data[i].itemId);
         }
       }
     }
