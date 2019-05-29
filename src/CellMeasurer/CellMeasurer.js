@@ -56,16 +56,6 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     this._cellHeight = this._cellMeasurer.offsetHeight;
   }
 
-  _isChangedHeight(oldHeight: number, newHeight: number): boolean {
-    return oldHeight !== newHeight;
-  }
-
-  get getCellHeight(): number {
-    const { cache } = this.props;
-    if (this._cellHeight === undefined) return cache.defaultHeight;
-    return this._cellHeight;
-  }
-
   get getCellPosition(): Position {
     return this.props.position;
   }
@@ -77,4 +67,35 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   get getCache(): CellMeasurerCache {
     return this.props.cache;
   }
+
+  // _checkChangedHeight() {
+  //   const { id, onChangedHeight } = this.props;
+  //
+  //   this._newHeight = this._getCellHeight();
+  //
+  //   if (this._oldHeight !== this._newHeight) {
+  //     this._oldHeight = this._newHeight;
+  //     onChangedHeight(id, this._newHeight);
+  //   }
+  // }
+  //
+  // _getCellHeight() {
+  //   if (
+  //     this._cellMeasurer &&
+  //     this._cellMeasurer.ownerDocument &&
+  //     this._cellMeasurer.ownerDocument.defaultView &&
+  //     this._cellMeasurer instanceof this._cellMeasurer.ownerDocument.defaultView.HTMLElement
+  //   ) {
+  //
+  //     const styleHeight = this._cellMeasurer.style.height;
+  //
+  //     const height = Math.round(this._cellMeasurer.offsetHeight);
+  //
+  //     if (styleHeight) {
+  //       this._cellMeasurer.style.height = styleHeight;
+  //     }
+  //
+  //     return height;
+  //   }
+  // }
 }
