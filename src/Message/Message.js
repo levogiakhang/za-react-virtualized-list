@@ -142,9 +142,9 @@ export default class Message extends React.PureComponent<MessageProps> implement
 
       this._newHeight = this._message.clientHeight + marginTop + marginBottom;
       if (this._oldHeight !== this._newHeight) {
+        this._oldHeight = this._newHeight;
         onChangedHeight(PREFIX + id, this._newHeight);
       }
-      this._oldHeight = this._newHeight;
     }
   }
 

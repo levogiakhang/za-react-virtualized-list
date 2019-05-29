@@ -56,7 +56,6 @@ class Masonry extends React.Component<Props> {
     data.forEach((item) => {
       this._setItemOnMap(PREFIX + item.itemId, cellMeasurerCache.defaultHeight);
     });
-    this._currentFirstItemData = PREFIX + data[0].itemId;
   }
 
   componentDidMount() {
@@ -75,10 +74,13 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
-    const {scrollTop} = this.state;
-    const firstItemInViewport = this._getItemIdFromPosition(scrollTop);
-    const disparity = scrollTop - this._getPositionOfItem(firstItemInViewport);
+    console.log(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId);
+    console.log(this._getItemIdFromPosition(this.state.scrollTop));
+    const disparity = this.state.scrollTop - this._positionMaps.get(this._getItemIdFromPosition(this.state.scrollTop));
+    console.log(disparity);
     this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
+    this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, disparity);
+    console.log('scr');
     this.forceUpdate();
   }
 
@@ -116,6 +118,7 @@ class Masonry extends React.Component<Props> {
 
     // array item is rendered in the batch.
     const children = [];
+    console.log(this._currentItemInViewport);
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsFromOffset(scrollTop);
@@ -128,7 +131,7 @@ class Masonry extends React.Component<Props> {
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
             userName: index + " " + data[index].name.first,
-            messageContent: data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId + data[index].itemId,
+            messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId,
             sentTime: data[index].registered.date
           });
 
@@ -204,9 +207,9 @@ class Masonry extends React.Component<Props> {
     // check add or remove item above
     // remove
     if (this._oldDataLength !== data.length) {
+      this._oldDataLength = data.length;
       this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
     }
-    this._oldDataLength = data.length;
   }
 
   _onScroll() {
@@ -327,6 +330,7 @@ class Masonry extends React.Component<Props> {
     let currentItemId = itemId;
     const currentIndex = this._getIndexFromId(itemId);
 
+    // TODO: High cost
     for (let i = currentIndex; i < data.length; i++) {
       const currentItemPosition = this._positionMaps.get(currentItemId);
       let currentItemHeight = this._renderedCellMaps.get(currentItemId);
@@ -443,7 +447,7 @@ class Masonry extends React.Component<Props> {
           results.push(PREFIX + data[i].itemId);
         }
       } else {
-        for (let i = 0; i <= numOfItemInViewport + preRenderCellCount; i++) {
+        for (let i = Math.max(0, currentIndex - preRenderCellCount); i <= numOfItemInViewport + preRenderCellCount; i++) {
           results.push(PREFIX + data[i].itemId);
         }
       }

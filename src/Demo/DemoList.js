@@ -6,7 +6,7 @@ import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 40;
+const DATA_NUMBER = 100;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -160,7 +160,7 @@ class DemoList extends React.PureComponent {
                id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={3}/>
+               preRenderCellCount={1}/>
     )
   };
 
