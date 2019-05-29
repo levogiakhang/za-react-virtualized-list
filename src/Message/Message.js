@@ -6,7 +6,6 @@ import './css/TheirMessage.css'
 import './css/MyMessage.css'
 import type {MessageBase} from "../ModelBase/MessageBase";
 import {PREFIX} from "../utils/value";
-import * as ReactDOM from "react-dom";
 
 export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
@@ -14,31 +13,13 @@ export default class Message extends React.PureComponent<MessageProps> implement
 
     this.state = {
       isExpanded: false,
-      windowWidth: 0,
     };
-
-    this._message = undefined;
-
-    this._oldHeight = undefined;
-    this._newHeight = undefined;
 
     this._onClick = this._onClick.bind(this);
     this._onRemove = this._onRemove.bind(this);
-    this._onWindowResize = this._onWindowResize.bind(this);
   }
 
   componentDidMount() {
-    this._message = ReactDOM.findDOMNode(this);
-    window.addEventListener('resize', this._onWindowResize);
-    this._checkChangedHeight();
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this._onWindowResize);
-  }
-
-  _onWindowResize() {
-    this.setState({windowWidth: window.innerWidth});
   }
 
   render() {
@@ -126,26 +107,6 @@ export default class Message extends React.PureComponent<MessageProps> implement
           </div>
         </div>
     );
-  }
-
-  componentDidUpdate() {
-    this._checkChangedHeight();
-  }
-
-  _checkChangedHeight() {
-    const {id, onChangedHeight} = this.props;
-    const el = document.getElementById(id);
-    if (el) {
-      let style = getComputedStyle(el, null);
-      let marginTop = parseInt(style.marginTop) || 0;
-      let marginBottom = parseInt(style.marginTop) || 0;
-
-      this._newHeight = this._message.clientHeight + marginTop + marginBottom;
-      if (this._oldHeight !== this._newHeight) {
-        this._oldHeight = this._newHeight;
-        onChangedHeight(PREFIX + id, this._newHeight);
-      }
-    }
   }
 
   get getItemId(): string {

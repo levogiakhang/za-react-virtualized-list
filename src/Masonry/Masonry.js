@@ -145,6 +145,7 @@ class Masonry extends React.Component<Props> {
             <CellMeasurer cache={cellMeasurer.getCache}
                           id={cellMeasurer.getCellId}
                           key={cellMeasurer.getCellId}
+                          onChangedHeight={this.onChildrenChangeHeight}
                           position={cellMeasurer.getCellPosition}>
               <Message id={mess.getItemId}
                        key={mess.getItemId}
@@ -153,7 +154,6 @@ class Masonry extends React.Component<Props> {
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
                        isMine={false}
-                       onChangedHeight={this.onChildrenChangeHeight}
                        onRemoveItem={this.onRemoveItem}/>
             </CellMeasurer>
           );
