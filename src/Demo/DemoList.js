@@ -6,7 +6,7 @@ import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 1000;
+const DATA_NUMBER = 100;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -69,7 +69,7 @@ class DemoList extends React.PureComponent {
   };
 
   loadMoreTop() {
-    topData.forEach(item => {
+    topData.reverse().forEach(item => {
       if (!this.isIdAlready(item.itemId) &&
         this.isInRange(0, 0, dataList.length - 1)) {
         dataList.splice(0, 0, item);
