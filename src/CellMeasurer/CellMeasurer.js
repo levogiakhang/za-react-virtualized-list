@@ -22,6 +22,8 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   constructor(props) {
     super(props);
 
+    this._oldHeight = this.props.cache.defaultHeight;
+    this._newHeight = undefined;
     this._cellMeasurer = undefined;
     this.resizeObserver = undefined;
 
@@ -80,6 +82,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   _isChangedHeight() {
     this._newHeight = this._getCellHeight();
     if (this._oldHeight !== this._newHeight) {
+      // console.log('id: ' + this.props.id + " old: " + this._oldHeight + ' new: ' + this._newHeight  );
       this._oldHeight = this._newHeight;
       return true;
     }
@@ -93,16 +96,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
       this._cellMeasurer.ownerDocument.defaultView &&
       this._cellMeasurer instanceof this._cellMeasurer.ownerDocument.defaultView.HTMLElement
     ) {
-
-      const styleHeight = this._cellMeasurer.style.height;
-
-      const height = Math.round(this._cellMeasurer.offsetHeight);
-
-      if (styleHeight) {
-        this._cellMeasurer.style.height = styleHeight;
-      }
-
-      return height;
+      return Math.round(this._cellMeasurer.offsetHeight);
     }
   }
 }
