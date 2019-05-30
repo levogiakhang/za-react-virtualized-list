@@ -41,7 +41,9 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   }
 
   onChildrenChangeHeight() {
-    this._checkChangedHeight();
+    if (this._isChangedHeight()) {
+      this.props.onChangedHeight(this.props.id, this._newHeight);
+    }
   };
 
   render() {
@@ -75,15 +77,13 @@ export default class CellMeasurer extends React.PureComponent<Props> {
     return this.props.cache;
   }
 
-  _checkChangedHeight() {
-    const { id, onChangedHeight } = this.props;
-
+  _isChangedHeight() {
     this._newHeight = this._getCellHeight();
-
     if (this._oldHeight !== this._newHeight) {
       this._oldHeight = this._newHeight;
-      onChangedHeight(id, this._newHeight);
+      return true;
     }
+    return false;
   }
 
   _getCellHeight() {
