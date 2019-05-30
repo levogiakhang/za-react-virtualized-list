@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import { NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
+import {NOT_FOUND, OUT_OF_RANGE} from "../utils/value";
 
 type Props = {
   className?: string,
@@ -56,14 +56,14 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
 
-    const { data, cellMeasurerCache } = this.props;
+    const {data, cellMeasurerCache} = this.props;
     data.forEach((item) => {
       this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
     });
   }
 
   componentDidMount() {
-    const { data } = this.props;
+    const {data} = this.props;
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
@@ -80,15 +80,12 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
-    //console.log(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId);
-    //console.log(this._getItemIdFromPosition(this.state.scrollTop));
-    const disparity = this.state.scrollTop - this._positionMaps.get(this._getItemIdFromPosition(this.state.scrollTop));
-    //console.log(disparity);
-    this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
-    console.log('after: ' + this.state.scrollTop);
-    this.scrollToOffset(this.state.scrollTop - 114);
-    //console.log('scr');
-    this.forceUpdate();
+    if (this._renderedCellMaps.get(itemId) !== newHeight) {
+      this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
+      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+        this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this.forceUpdate();
+    }
   }
 
   scrollToOffset(top) {
@@ -106,14 +103,13 @@ class Masonry extends React.Component<Props> {
       cellMeasurerCache
     } = this.props;
 
-    const { scrollTop } = this.state;
+    const {scrollTop} = this.state;
     const estimateTotalHeight = this._getEstimatedTotalHeight();
 
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
       itemId: this._getItemIdFromPosition(scrollTop),
       disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
     });
-    console.log('render: ' + this.state.scrollTop);
 
     // array item is rendered in the batch.
     const children = [];
@@ -137,7 +133,7 @@ class Masonry extends React.Component<Props> {
           const cellMeasurer = new CellMeasurer({
             cache: cellMeasurerCache,
             id: data[index].itemId,
-            position: { top: this._positionMaps.get(itemsInBatch[i]), left: 0 },
+            position: {top: this._positionMaps.get(itemsInBatch[i]), left: 0},
           });
 
           children.push(
@@ -200,8 +196,7 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const { data, cellMeasurerCache } = this.props;
-
+    const {data, cellMeasurerCache} = this.props;
     if (this._oldDataLength < data.length) {
       // update rendered maps when data has added more.
       data.forEach((item) => {
@@ -224,7 +219,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _onScroll() {
-    this.setState({ scrollTop: this._masonry.scrollTop });
+    this.setState({scrollTop: this._masonry.scrollTop});
   }
 
   _onResize() {
@@ -236,7 +231,7 @@ class Masonry extends React.Component<Props> {
       //   disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
       // });
     }, 500);
-    const { scrollTop } = this.state;
+    const {scrollTop} = this.state;
 
     if (this._resizeMap.size === 0)
       this._resizeMap.set('resize', {
@@ -255,7 +250,7 @@ class Masonry extends React.Component<Props> {
    *  Get total height in estimation.
    */
   _getEstimatedTotalHeight(): number {
-    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
+    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
 
     if (!this._renderedCellMaps || this._renderedCellMaps.size === 0) {
       return data.length * defaultHeight;
@@ -299,7 +294,7 @@ class Masonry extends React.Component<Props> {
   }
 
   onRemoveItem(itemId: string) {
-    const { data } = this.props;
+    const {data} = this.props;
     const itemIndex = this._getIndexFromId(itemId);
     // remove an item means this item has new height equals 0
     this._updateItemsPositionWhenItemChangedHeight(itemId, 0);
@@ -315,7 +310,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _updateMapIndex(startIndex: number, endIndex: number) {
-    const { data } = this.props;
+    const {data} = this.props;
     for (let i = startIndex; i <= endIndex - 1; i++) {
       this._mapIndexToId.set(i, data[i].itemId);
       this._mapIdToIndex.set(data[i].itemId, i);
@@ -326,7 +321,7 @@ class Masonry extends React.Component<Props> {
    *  Update all items' position
    */
   _updateItemsPosition() {
-    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
+    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
     let currentPosition = 0;
     data.forEach((item) => {
       this._setItemPositionOnMap(item.itemId, currentPosition);
@@ -350,7 +345,7 @@ class Masonry extends React.Component<Props> {
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
   _updateItemsPositionFromSpecifiedItem(itemId: string) {
-    const { data } = this.props;
+    const {data} = this.props;
     // console.log('-----------------------');
     let currentItemId = itemId;
     const currentIndex = this._getIndexFromId(itemId);
@@ -437,7 +432,7 @@ class Masonry extends React.Component<Props> {
    *  @return: an Array<string>
    */
   _getItemsInBatch(scrollTop: number): Array<string> {
-    const { height, preRenderCellCount, data } = this.props;
+    const {height, preRenderCellCount, data} = this.props;
 
     let results: Array<string> = [];
     const currentIndex = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
