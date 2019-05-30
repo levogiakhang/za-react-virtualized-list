@@ -85,7 +85,8 @@ class Masonry extends React.Component<Props> {
     const disparity = this.state.scrollTop - this._positionMaps.get(this._getItemIdFromPosition(this.state.scrollTop));
     //console.log(disparity);
     this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
-    this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId, disparity);
+    console.log('after: ' + this.state.scrollTop);
+    this.scrollToOffset(this.state.scrollTop - 114);
     //console.log('scr');
     this.forceUpdate();
   }
@@ -112,6 +113,7 @@ class Masonry extends React.Component<Props> {
       itemId: this._getItemIdFromPosition(scrollTop),
       disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
     });
+    console.log('render: ' + this.state.scrollTop);
 
     // array item is rendered in the batch.
     const children = [];

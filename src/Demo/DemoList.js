@@ -6,7 +6,7 @@ import Masonry from "../Masonry/Masonry";
 
 let dataList = [];
 
-const DATA_NUMBER = 100;
+const DATA_NUMBER = 50;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -29,7 +29,7 @@ class DemoList extends React.PureComponent {
     this.handleChangeIndex = this.handleChangeIndex.bind(this);
 
     this._cache = new CellMeasurerCache({
-      defaultHeight: 191,
+      defaultHeight: 200,
       height: 300,
     });
   }
@@ -160,7 +160,7 @@ class DemoList extends React.PureComponent {
                id={'Masonry'}
                data={dataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={1}/>
+               preRenderCellCount={3}/>
     )
   };
 
