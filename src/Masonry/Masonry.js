@@ -53,11 +53,7 @@ class Masonry extends React.Component<Props> {
 
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
-    this._setItemOnMap = this._setItemOnMap.bind(this);
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
-    this._getItemsInBatch = this._getItemsInBatch.bind(this);
-    this.scrollToOffset = this.scrollToOffset.bind(this);
-    this._updateItemsPositionFromSpecifiedItem = this._updateItemsPositionFromSpecifiedItem.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
 
     const { data, cellMeasurerCache } = this.props;
@@ -141,7 +137,7 @@ class Masonry extends React.Component<Props> {
           const mess = new Message({
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
-            userName: index + " " + data[index].name.first,
+            userName: data[index].name.first,
             messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId,
             sentTime: data[index].registered.date
           });
@@ -160,6 +156,7 @@ class Masonry extends React.Component<Props> {
                           position={cellMeasurer.getCellPosition}>
               <Message id={mess.getItemId}
                        key={mess.getItemId}
+                       index={index}
                        userAvatarUrl={mess.getUserAvatarUrl}
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}

@@ -1,10 +1,10 @@
 // @flow
 
 import React from 'react';
-import {MessageProps} from './type';
+import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
-import type {MessageBase} from "../ModelBase/MessageBase";
+import type { MessageBase } from "../ModelBase/MessageBase";
 
 export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
   constructor(props) {
@@ -22,8 +22,8 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   render() {
-    const {id, userAvatarUrl, userName, messageContent, sentTime, isMine} = this.props;
-    const {isExpanded} = this.state;
+    const { id, index, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
+    const { isExpanded } = this.state;
 
     return (
       isMine ?
@@ -43,6 +43,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
             <div className="my-message-content-container">
               <div className="my-message-content-user-name">
                 <p>{userName}</p>
+                <p> Index in data: {index} </p>
               </div>
 
               <div className="my-message-content-content">
@@ -81,6 +82,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
           <div className="their-message-content-container">
             <div className="their-message-content-user-name">
               <p>{userName}</p>
+              <p> Index in data: {index} </p>
             </div>
 
             <div className="their-message-content-content">
@@ -100,7 +102,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
               }
             </button>
 
-            <button style={{marginLeft: "10px"}} onClick={this._onRemove}>
+            <button style={{ marginLeft: "10px" }} onClick={this._onRemove}>
               Remove
             </button>
           </div>
@@ -145,10 +147,10 @@ export default class Message extends React.PureComponent<MessageProps> implement
   };
 
   _onClick() {
-    const {isExpanded} = this.state;
+    const { isExpanded } = this.state;
     isExpanded ?
-      this.setState({isExpanded: false}) :
-      this.setState({isExpanded: true})
+      this.setState({ isExpanded: false }) :
+      this.setState({ isExpanded: true })
   }
 
   _onRemove() {
