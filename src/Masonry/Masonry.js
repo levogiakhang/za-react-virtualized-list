@@ -106,22 +106,12 @@ class Masonry extends React.Component<Props> {
     } = this.props;
 
     const { scrollTop } = this.state;
+    const estimateTotalHeight = this._getEstimatedTotalHeight();
 
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
       itemId: this._getItemIdFromPosition(scrollTop),
       disparity: scrollTop - this._positionMaps.get(this._getItemIdFromPosition(scrollTop))
     });
-
-    if (this._oldDataLength < data.length) {
-      // update rendered maps when data has added more.
-      data.forEach((item) => {
-        if (!this._renderedCellMaps.has(item.itemId)) {
-          this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
-        }
-      });
-      this._updateMapIndex(0, data.length);
-      this._updateItemsPosition();
-    }
 
     // array item is rendered in the batch.
     const children = [];
@@ -174,8 +164,6 @@ class Masonry extends React.Component<Props> {
       }
     }
 
-    const estimateTotalHeight = this._getEstimatedTotalHeight();
-
     return (
       <div className={className}
            id={id}
@@ -210,8 +198,18 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const { data } = this.props;
+    const { data, cellMeasurerCache } = this.props;
 
+    if (this._oldDataLength < data.length) {
+      // update rendered maps when data has added more.
+      data.forEach((item) => {
+        if (!this._renderedCellMaps.has(item.itemId)) {
+          this._setItemOnMap(item.itemId, cellMeasurerCache.defaultHeight);
+        }
+      });
+      this._updateMapIndex(0, data.length);
+      this._updateItemsPosition();
+    }
     // check add or remove item above
     // remove
     if (this._oldDataLength !== data.length) {
