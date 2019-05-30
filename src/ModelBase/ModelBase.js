@@ -1,5 +1,5 @@
 // @flow
 
-export interface MessageBase {
+export interface ModelBase {
   getItemId(): string
 }

@@ -4,9 +4,9 @@ import React from 'react';
 import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
-import type { MessageBase } from "../ModelBase/MessageBase";
+import type { ModelBase } from "../ModelBase/ModelBase";
 
-export default class Message extends React.PureComponent<MessageProps> implements MessageBase {
+export default class Message extends React.PureComponent<MessageProps> implements ModelBase {
   constructor(props) {
     super(props);
 
