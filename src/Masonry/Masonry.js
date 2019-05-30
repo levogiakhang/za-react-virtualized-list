@@ -442,46 +442,16 @@ class Masonry extends React.Component<Props> {
    */
   _getItemsFromOffset(scrollTop: number): Array<string> {
     const { height, preRenderCellCount, cellMeasurerCache: { defaultHeight }, data } = this.props;
-    const overscanOnPixel = Math.min(defaultHeight * preRenderCellCount, this._positionMaps.get(this._getItemIdFromIndex(preRenderCellCount)));
 
     let results: Array<string> = [];
-    const itemId = this._getItemIdFromPosition(scrollTop);
-    const currentIndex = this._getIndexFromId(itemId);
-
+    const currentIndex = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
     const numOfItemInViewport = this._getItemsInViewport(scrollTop, height).length;
-    // Top: số lượng item trên top < preRenderCellCount
-    if (scrollTop < overscanOnPixel) {
-      if (numOfItemInViewport + 2 * preRenderCellCount >= data.length) {
-        for (let i = 0; i <= data.length - 1; i++) {
-          results.push(data[i].itemId);
-        }
-      } else {
-        for (let i = Math.max(0, currentIndex - preRenderCellCount); i <= numOfItemInViewport + preRenderCellCount; i++) {
-          results.push(data[i].itemId);
-        }
-      }
-    }
 
-    // Bottom: số lượng item dưới < preRenderCellCount
-    else if (scrollTop > this._getEstimatedTotalHeight() - height - overscanOnPixel) {
-      for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
-        results.push(data[i].itemId);
-      }
-    }
+    const startIndex = Math.max(0, currentIndex - preRenderCellCount);
+    const endIndex = Math.min(currentIndex + numOfItemInViewport + preRenderCellCount, data.length);
 
-    // Middle
-    else {
-      if (currentIndex + numOfItemInViewport + preRenderCellCount >= data.length) {
-        for (let i = Math.max(0, currentIndex - preRenderCellCount); i < data.length; i++) {
-          results.push(data[i].itemId);
-        }
-      } else {
-        for (let i = Math.max(0, currentIndex - preRenderCellCount);
-             i <= currentIndex + numOfItemInViewport + preRenderCellCount;
-             i++) {
-          results.push(data[i].itemId);
-        }
-      }
+    for (let i = startIndex; i <= endIndex - 1; i++) {
+      results.push(data[i].itemId);
     }
 
     return results;
