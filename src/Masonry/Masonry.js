@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import {NOT_FOUND, OUT_OF_RANGE} from "../utils/value";
+import { NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
 
 type Props = {
   className?: string,
@@ -50,7 +50,7 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
 
-    const {data, cellMeasurerCache} = this.props;
+    const { data, cellMeasurerCache } = this.props;
     this._oldDataLength = data.length;
     data.forEach((item) => {
       this._updateItemOnMap(item.itemId, data.indexOf(item), cellMeasurerCache.defaultHeight, 0);
@@ -59,7 +59,7 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidMount() {
-    const {data} = this.props;
+    const { data } = this.props;
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
@@ -98,7 +98,7 @@ class Masonry extends React.Component<Props> {
       cellMeasurerCache
     } = this.props;
 
-    const {scrollTop} = this.state;
+    const { scrollTop } = this.state;
     const estimateTotalHeight = this._getEstimatedTotalHeight();
 
     this._currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
@@ -128,7 +128,7 @@ class Masonry extends React.Component<Props> {
           const cellMeasurer = new CellMeasurer({
             cache: cellMeasurerCache,
             id: data[index].itemId,
-            position: {top: this._itemsMap.get(itemsInBatch[i]).position, left: 0},
+            position: { top: this._itemsMap.get(itemsInBatch[i]).position, left: 0 },
           });
 
           children.push(
@@ -191,7 +191,7 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const {data, cellMeasurerCache} = this.props;
+    const { data, cellMeasurerCache } = this.props;
     if (this._oldDataLength < data.length) {
       // update rendered maps when data has added more.
       data.forEach((item) => {
@@ -214,7 +214,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _onScroll() {
-    this.setState({scrollTop: this._masonry.scrollTop});
+    this.setState({ scrollTop: this._masonry.scrollTop });
   }
 
   _onResize() {
@@ -226,7 +226,7 @@ class Masonry extends React.Component<Props> {
       //   disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
       // });
     }, 500);
-    const {scrollTop} = this.state;
+    const { scrollTop } = this.state;
 
     if (this._resizeMap.size === 0)
       this._resizeMap.set('resize', {
@@ -245,7 +245,7 @@ class Masonry extends React.Component<Props> {
    *  Get total height in estimation.
    */
   _getEstimatedTotalHeight(): number {
-    const {data, cellMeasurerCache: {defaultHeight}} = this.props;
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
 
     if (!this._itemsMap || this._itemsMap.size === 0) {
       return data.length * defaultHeight;
@@ -265,38 +265,45 @@ class Masonry extends React.Component<Props> {
   }
 
   _updateItemOnMap(itemId: string, itemIndex: number, itemHeight: number, itemPosition: number) {
-    this._itemsMap.set(itemId, {index: itemIndex, height: itemHeight, position: itemPosition});
+    this._itemsMap.set(itemId, { index: itemIndex, height: itemHeight, position: itemPosition });
   }
 
   onRemoveItem(itemId: string) {
-    const {data} = this.props;
+    const { data } = this.props;
     const itemIndex = this._getIndexFromId(itemId);
+
     // remove an item means this item has new height equals 0
     this._updateItemsPositionWhenItemChangedHeight(itemId, 0);
+
     // Remove item on data list, rendered maps and position maps
     data.splice(itemIndex, 1);
-    //TODO: update item index in _itemsMap
-    this._itemsMap.delete(itemId);
-    this._updateMapIndex(itemIndex, data.length);
+
+    // Update index to id map after remove an item.
+    this._updateMapIndex(itemIndex - 1, data.length);
     this._mapIndexToId.delete(data.length);
+
+    // Update the map
+    this._updateItemIndex(itemIndex);
+    this._itemsMap.delete(itemId);
+
     this.forceUpdate();
   }
 
   _updateMapIndex(startIndex: number, endIndex: number) {
-    const {data} = this.props;
+    const { data } = this.props;
     if (endIndex >= data.length) endIndex = data.length - 1;
+    if (startIndex < 0) startIndex = 0;
     for (let i = startIndex; i <= endIndex; i++) {
       this._mapIndexToId.set(i, data[i].itemId);
     }
   }
 
-  // ????
-  _updateIndexOnMap(startIndex: number, endIndex: number) {
-    const {data} = this.props;
-    if (endIndex >= data.length) endIndex = data.length - 1;
-    const itemId = this._getItemIdFromIndex(startIndex + 1);
-    for (let i = startIndex; i <= endIndex; i++) {
-      this._itemsMap.set(itemId, i, this._itemsMap.get(itemId).height, this._itemsMap.get(itemId).position);
+  _updateItemIndex(startIndex: number) {
+    const { data } = this.props;
+    let itemId;
+    for (let i = startIndex; i <= data.length - 1; i++) {
+      itemId = this._getItemIdFromIndex(i);
+      this._updateItemOnMap(itemId, i, this._itemsMap.get(itemId).height, this._itemsMap.get(itemId).position);
     }
   }
 
@@ -304,7 +311,7 @@ class Masonry extends React.Component<Props> {
    *  Update all items' position
    */
   _updateItemsPosition() {
-    const {data} = this.props;
+    const { data } = this.props;
     let currentPosition = 0;
     data.forEach((item) => {
       this._updateItemOnMap(item.itemId,
@@ -330,7 +337,7 @@ class Masonry extends React.Component<Props> {
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
   _updateItemsPositionFromSpecifiedItem(itemId: string) {
-    const {data} = this.props;
+    const { data } = this.props;
     // console.log('-----------------------');
     let currentItemId = itemId;
     const currentIndex = this._getIndexFromId(itemId);
@@ -413,7 +420,7 @@ class Masonry extends React.Component<Props> {
    *  @return: an Array<string>
    */
   _getItemsInBatch(scrollTop: number): Array<string> {
-    const {height, preRenderCellCount, data} = this.props;
+    const { height, preRenderCellCount, data } = this.props;
 
     let results: Array<string> = [];
     const currentIndex = this._getIndexFromId(this._getItemIdFromPosition(scrollTop));
