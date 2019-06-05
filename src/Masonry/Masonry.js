@@ -26,7 +26,7 @@ class Masonry extends React.Component<Props> {
       isScrolling: false,
       scrollTop: 0,
     };
-
+    this.isFirst = true;
     // for add more above
     this._currentItemInViewport = new Map();
     this._oldDataLength = undefined;
@@ -62,12 +62,12 @@ class Masonry extends React.Component<Props> {
   componentDidMount() {
     const { data } = this.props;
     this._masonry = ReactDOM.findDOMNode(this);
-    this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
     window.addEventListener('resize', debounce(this._onResize, DEBOUNCING_TIMER));
     console.log(data);
     this._updateItemsPosition();
     console.log(this._itemsMap);
+    this._masonry.firstChild.scrollIntoView(false);
   }
 
   componentWillUnmount() {
@@ -94,12 +94,17 @@ class Masonry extends React.Component<Props> {
       disparity: scrollTop - this._itemsMap.get(this._getItemIdFromPosition(scrollTop)).position
     });
 
+    if (this._masonry !== undefined && this.isFirst === true) {
+      this._masonry.firstChild.scrollIntoView(false);
+      console.log('bb')
+    }
 
     // array item is rendered in the batch.
     const children = [];
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsInBatch(scrollTop);
+    //console.log(this._getItemIdFromPosition(scrollTop))
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
@@ -108,8 +113,8 @@ class Masonry extends React.Component<Props> {
           const mess = new Message({
             id: data[index].itemId,
             userAvatarUrl: data[index].picture.thumbnail,
-            userName: data[index].name.first,
-            messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId,
+            userName: data[index].itemId,
+            messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId,
             sentTime: data[index].registered.date
           });
 
@@ -202,6 +207,10 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
+    if (itemId === this._getItemIdFromIndex(this.props.data.length - 1)) {
+      //console.log('e')
+      this.isFirst = false;
+    }
     if (this._itemsMap.get(itemId).height !== newHeight) {
       this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
       this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
@@ -245,6 +254,7 @@ class Masonry extends React.Component<Props> {
     let totalHeight = 0;
 
     // TODO: Improve algorithm
+    // this loop is run in each render
     data.forEach((item) => {
       if (this._itemsMap.has(item.itemId)) {
         totalHeight += Math.round(this._itemsMap.get(item.itemId).height);
@@ -419,7 +429,7 @@ class Masonry extends React.Component<Props> {
     const startIndex = Math.max(0, currentIndex - preRenderCellCount);
     const endIndex = Math.min(currentIndex + numOfItemInViewport + preRenderCellCount, data.length);
 
-    for (let i = startIndex; i <= endIndex - 1; i++) {
+    for (let i = startIndex; i < endIndex; i++) {
       results.push(data[i].itemId);
     }
 
@@ -435,7 +445,7 @@ class Masonry extends React.Component<Props> {
    *        + empty: if scrollTop is out of range or there isn't any items in viewport.
    *        + (Array<string>): stores all items' id in viewport.
    */
-  _getItemsInViewport(scrollTop: number, height: number): Array<string> {
+  _getItemsInViewport(scrollTop: number, viewportHeight: number): Array<string> {
     const itemIdStart = this._getItemIdFromPosition(scrollTop);
     const results = new Array(0);
 
@@ -444,21 +454,27 @@ class Masonry extends React.Component<Props> {
 
       // disparity > 0 when scrollTop position is between `the item's position` and `item's position + its height`.
       const disparity = scrollTop - this._itemsMap.get(itemIdStart).position;
-      let temp = height - this._itemsMap.get(itemIdStart).height + disparity;
+      let remainingView = viewportHeight - this._itemsMap.get(itemIdStart).height + disparity;
+
       let i = 1;
       let itemIndex = this._getIndexFromId(itemIdStart);
-      if (itemIndex + i >= this.props.data.length) itemIndex = this.props.data.length - 2;
-      let nextItemHeight = this._itemsMap.get(this._getItemIdFromIndex(itemIndex + i)).height;
-
-      while (temp > nextItemHeight) {
-        temp -= nextItemHeight;
-        results.push(this._getItemIdFromIndex(itemIndex + i));
-        i++;
-        if (this._getItemIdFromIndex(itemIndex + i) !== OUT_OF_RANGE)
-          nextItemHeight = this._itemsMap.get(this._getItemIdFromIndex(itemIndex + i)).height;
+      if (itemIndex + i >= this.props.data.length) {
+        itemIndex = this.props.data.length - 2;
       }
-      if (temp > 0) {
-        results.push(this._getItemIdFromIndex(itemIndex + i));
+
+      let nextItemId = this._getItemIdFromIndex(itemIndex + i);
+      let nextItemHeight = this._itemsMap.get(nextItemId).height;
+
+      while (remainingView > nextItemHeight) {
+        remainingView -= nextItemHeight;
+        results.push(nextItemId);
+        i++;
+        nextItemId = this._getItemIdFromIndex(itemIndex + i);
+        if (nextItemId !== OUT_OF_RANGE)
+          nextItemHeight = this._itemsMap.get(nextItemId).height;
+      }
+      if (remainingView > 0) {
+        results.push(nextItemId);
       }
     }
 
