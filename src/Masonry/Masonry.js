@@ -31,7 +31,7 @@ class Masonry extends React.Component<Props> {
     * Scroll to bottom when the first loading
     */
     // Count number of render called.
-    this.count = 0;
+    this.firstLoadingCount = 0;
     // Trigger is the first loading.
     this.isFirstLoading = true;
 
@@ -110,9 +110,9 @@ class Masonry extends React.Component<Props> {
 
     // Scroll to bottom when the first loading
     if (this._masonry !== undefined && this.isFirstLoading === true) {
-      this.count++;
+      this.firstLoadingCount++;
       this._scrollToItem(this._getItemIdFromIndex(data.length - 1), 0);
-      if (this.count - 1 >= itemsInBatch.length) {
+      if (this.firstLoadingCount - 1 >= itemsInBatch.length) {
         this.isFirstLoading = false;
       }
     }
@@ -236,7 +236,8 @@ class Masonry extends React.Component<Props> {
         itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
         disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
       });
-
+console.log('aa'
+)
     // console.log('id: ' + (this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
     // console.log('pos: ' + this._positionMaps.get(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId));
     // console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
