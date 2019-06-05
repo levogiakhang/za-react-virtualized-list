@@ -51,10 +51,10 @@ class Masonry extends React.Component<Props> {
   }
 
   init() {
-    const { data, cellMeasurerCache } = this.props;
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
     this._oldDataLength = data.length;
     data.forEach((item) => {
-      this._updateItemOnMap(item.itemId, data.indexOf(item), cellMeasurerCache.defaultHeight, 0);
+      this._updateItemOnMap(item.itemId, data.indexOf(item), defaultHeight, 0);
     });
     this._updateMapIndex(0, data.length);
   }
@@ -73,19 +73,6 @@ class Masonry extends React.Component<Props> {
   componentWillUnmount() {
     this._masonry.removeEventListener('scroll', this._onScroll);
     window.removeEventListener('resize', this._onResize);
-  }
-
-  onChildrenChangeHeight(itemId: string, newHeight: number) {
-    if (this._itemsMap.get(itemId).height !== newHeight) {
-      this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
-      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
-        this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-      this.forceUpdate();
-    }
-  }
-
-  scrollToOffset(top) {
-    this._masonry.scrollTo(0, top);
   }
 
   render() {
@@ -214,6 +201,15 @@ class Masonry extends React.Component<Props> {
     }
   }
 
+  onChildrenChangeHeight(itemId: string, newHeight: number) {
+    if (this._itemsMap.get(itemId).height !== newHeight) {
+      this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
+      this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+        this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this.forceUpdate();
+    }
+  }
+
   _onScroll() {
     this.setState({ scrollTop: this._masonry.scrollTop });
   }
@@ -230,6 +226,10 @@ class Masonry extends React.Component<Props> {
     // console.log('dis: ' + this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
     // this._scrollToItem(this._resizeMap.get('resize').itemId, this._resizeMap.get('resize').disparity);
     // console.log('s2: ' + scrollTop);
+  }
+
+  _scrollToOffset(top) {
+    this._masonry.scrollTo(0, top);
   }
 
   /*
@@ -467,7 +467,7 @@ class Masonry extends React.Component<Props> {
 
   _scrollToItem(itemId: string, disparity) {
     if (this._itemsMap.has(itemId)) {
-      this.scrollToOffset(this._itemsMap.get(itemId).position + disparity);
+      this._scrollToOffset(this._itemsMap.get(itemId).position + disparity);
     }
   }
 }
