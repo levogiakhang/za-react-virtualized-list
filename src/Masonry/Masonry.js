@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import { DEBOUNCING_TIMER, NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
+import { DEBOUNCING_TIMER, NOT_FOUND, OUT_OF_RANGE, CURRENT_ITEM_IN_VIEWPORT } from "../utils/value";
 import debounce from "../utils/debounce";
 
 type Props = {
@@ -17,8 +17,6 @@ type Props = {
   data: any,
   cellMeasurerCache: CellMeasurerCache,
 };
-
-const CURRENT_ITEM_IN_VIEWPORT = 'currentItemInViewport';
 
 class Masonry extends React.Component<Props> {
   constructor(props) {
@@ -49,6 +47,10 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
 
+    this.init();
+  }
+
+  init() {
     const { data, cellMeasurerCache } = this.props;
     this._oldDataLength = data.length;
     data.forEach((item) => {
