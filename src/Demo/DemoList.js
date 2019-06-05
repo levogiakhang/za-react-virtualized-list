@@ -3,6 +3,7 @@ import './css/DemoList.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import {bottomData, itemData, itemDataTop, randomItemData, topData} from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
+import { fakeData } from "../utils/FakeData";
 
 let dataList = [];
 
@@ -113,6 +114,16 @@ class DemoList extends React.PureComponent {
     return result;
   }
 
+  fakeDataList() {
+    let _fakeDataList = [];
+    for(let i = 0; i< DATA_NUMBER; i++) {
+      const result = this.cloneObject(fakeData);
+      result.itemId = fakeData.itemId + i;
+      _fakeDataList.push(result);
+    }
+    return _fakeDataList;
+  }
+
   onAddItem() {
     const {moreIndex} = this.state;
     const item = this.randomItem();
@@ -154,11 +165,12 @@ class DemoList extends React.PureComponent {
   };
 
   _renderList = (dataList) => {
+    const fakeData = this.fakeDataList();
     return (
       <Masonry height={500}
                style={{marginTop: "10px", borderRadius: '5px'}}
                id={'Masonry'}
-               data={dataList}
+               data={fakeData}
                cellMeasurerCache={this._cache}
                preRenderCellCount={3}/>
     )

@@ -84,7 +84,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
   _isChangedHeight() {
     this._newHeight = this._getCellHeight();
     if (this._oldHeight !== this._newHeight) {
-      console.log('id: ' + this.props.id + " old: " + this._oldHeight + ' new: ' + this._newHeight  );
+      //console.log('id: ' + this.props.id + " old: " + this._oldHeight + ' new: ' + this._newHeight  );
       this._oldHeight = this._newHeight;
       return true;
     }
