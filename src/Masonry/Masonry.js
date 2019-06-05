@@ -5,7 +5,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
-import { NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
+import { DEBOUNCING_TIMER, NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
 import debounce from "../utils/debounce";
 
 type Props = {
@@ -62,7 +62,7 @@ class Masonry extends React.Component<Props> {
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
-    window.addEventListener('resize', debounce(this._onResize, 1000));
+    window.addEventListener('resize', debounce(this._onResize, DEBOUNCING_TIMER));
     console.log(data);
     this._updateItemsPosition();
     console.log(this._itemsMap);
@@ -217,7 +217,6 @@ class Masonry extends React.Component<Props> {
   }
 
   _onResize() {
-    console.log('a');
     if (this._resizeMap.size === 0)
       this._resizeMap.set('resize', {
         itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
@@ -368,7 +367,7 @@ class Masonry extends React.Component<Props> {
  *        + OUT_OF_RANGE ('out of range'): if position param is greater than total height.
  */
   _getItemIdFromPosition(positionTop: number): string {
-    if (positionTop >= this._getEstimatedTotalHeight()) return OUT_OF_RANGE;
+    if (positionTop >= this._getEstimatedTotalHeight()) return this._getItemIdFromIndex(this.props.data.length - 1);
 
     for (let key of this._itemsMap.keys()) {
       if (positionTop >= this._itemsMap.get(key).position &&
@@ -445,7 +444,8 @@ class Masonry extends React.Component<Props> {
       const disparity = scrollTop - this._itemsMap.get(itemIdStart).position;
       let temp = height - this._itemsMap.get(itemIdStart).height + disparity;
       let i = 1;
-      const itemIndex = this._getIndexFromId(itemIdStart);
+      let itemIndex = this._getIndexFromId(itemIdStart);
+      if (itemIndex + i >= this.props.data.length) itemIndex = this.props.data.length - 2;
       let nextItemHeight = this._itemsMap.get(this._getItemIdFromIndex(itemIndex + i)).height;
 
       while (temp > nextItemHeight) {

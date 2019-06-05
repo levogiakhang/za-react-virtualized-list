@@ -4,6 +4,8 @@ import CellMeasurerCache from "./CellMeasurerCache";
 import { Position } from "../utils/types";
 import * as ReactDOM from "react-dom";
 import ResizeObserver from 'resize-observer-polyfill';
+import throttle from "../utils/throttle";
+import { THROTTLING_TIMER } from "../utils/value";
 
 type OnChangedHeightCallback = (params: {|
   itemId: string,
@@ -34,7 +36,7 @@ export default class CellMeasurer extends React.PureComponent<Props> {
 
   componentDidMount() {
     this._cellMeasurer = ReactDOM.findDOMNode(this);
-    this.resizeObserver = new ResizeObserver(this.onChildrenChangeHeight);
+    this.resizeObserver = new ResizeObserver(throttle(this.onChildrenChangeHeight, THROTTLING_TIMER));
     this.resizeObserver.observe(this._cellMeasurer);
   }
 
