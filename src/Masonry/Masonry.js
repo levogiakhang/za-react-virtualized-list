@@ -26,7 +26,15 @@ class Masonry extends React.Component<Props> {
       isScrolling: false,
       scrollTop: 0,
     };
-    this.isFirst = true;
+
+    /*
+    * Scroll to bottom when the first loading
+    */
+    // Count number of render called.
+    this.count = 0;
+    // Trigger is the first loading.
+    this.isFirstLoading = true;
+
     // for add more above
     this._currentItemInViewport = new Map();
     this._oldDataLength = undefined;
@@ -94,17 +102,20 @@ class Masonry extends React.Component<Props> {
       disparity: scrollTop - this._itemsMap.get(this._getItemIdFromPosition(scrollTop)).position
     });
 
-    if (this._masonry !== undefined && this.isFirst === true) {
-      this._masonry.firstChild.scrollIntoView(false);
-      console.log('bb')
-    }
-
     // array item is rendered in the batch.
     const children = [];
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsInBatch(scrollTop);
-    //console.log(this._getItemIdFromPosition(scrollTop))
+
+    // Scroll to bottom when the first loading
+    if (this._masonry !== undefined && this.isFirstLoading === true) {
+      this.count++;
+      this._scrollToItem(this._getItemIdFromIndex(data.length - 1), 0);
+      if (this.count - 1 >= itemsInBatch.length) {
+        this.isFirstLoading = false;
+      }
+    }
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndexFromId(itemsInBatch[i]);
@@ -207,10 +218,6 @@ class Masonry extends React.Component<Props> {
   }
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
-    if (itemId === this._getItemIdFromIndex(this.props.data.length - 1)) {
-      //console.log('e')
-      this.isFirst = false;
-    }
     if (this._itemsMap.get(itemId).height !== newHeight) {
       this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
       this._scrollToItem(this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
