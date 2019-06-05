@@ -6,6 +6,7 @@ import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
 import { NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
+import debounce from "../utils/debounce";
 
 type Props = {
   className?: string,
@@ -43,8 +44,6 @@ class Masonry extends React.Component<Props> {
     // Represents this element.
     this._masonry = undefined;
 
-    this.resizeTimer = undefined;
-
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
@@ -63,7 +62,7 @@ class Masonry extends React.Component<Props> {
     this._masonry = ReactDOM.findDOMNode(this);
     this._masonry.firstChild.scrollIntoView(false);
     this._masonry.addEventListener('scroll', this._onScroll);
-    window.addEventListener('resize', this._onResize);
+    window.addEventListener('resize', debounce(this._onResize, 1000));
     console.log(data);
     this._updateItemsPosition();
     console.log(this._itemsMap);
@@ -218,16 +217,7 @@ class Masonry extends React.Component<Props> {
   }
 
   _onResize() {
-    //TODO: resize make viewport jumps to old position, NOT jumps to old item's position
-    clearTimeout(this.resizeTimer);
-    this.resizeTimer = setTimeout(() => {
-      // this._resizeMap.set('resize', {
-      //   itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
-      //   disparity: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
-      // });
-    }, 500);
-    const { scrollTop } = this.state;
-
+    console.log('a');
     if (this._resizeMap.size === 0)
       this._resizeMap.set('resize', {
         itemId: this._currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
