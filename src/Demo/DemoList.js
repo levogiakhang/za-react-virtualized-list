@@ -1,9 +1,9 @@
 import React from 'react';
 import './css/DemoList.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
-import {bottomData, itemData, itemDataTop, randomItemData, topData} from '../utils/ListMessageExample';
 import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
+import { ListMessageExample } from "../utils/ListMessageExample";
 
 let dataList = [];
 
@@ -20,27 +20,16 @@ class DemoList extends React.PureComponent {
     this.isLoadTopAlready = false;
     this.isLoadBottomAlready = false;
 
-    this.getData = this.getData.bind(this);
-    this.loadMoreTop = this.loadMoreTop.bind(this);
-    this.loadMoreBottom = this.loadMoreBottom.bind(this);
-    this.isIdAlready = this.isIdAlready.bind(this);
-    this.onAddItem = this.onAddItem.bind(this);
-    this.cloneObject = this.cloneObject.bind(this);
-    this.isInRange = this.isInRange.bind(this);
-    this.handleChangeIndex = this.handleChangeIndex.bind(this);
+    this.fakeDataList = this._fakeDataList();
 
     this._cache = new CellMeasurerCache({
       defaultHeight: 200,
-      height: 300,
+      height: 270,
     });
   }
 
-  async componentDidMount(): void {
-    const data = await this.getData();
-    data.forEach(item => dataList.push({itemId: item.login.uuid, ...item}));
-    dataList.splice(0, 0, itemDataTop);
-    dataList.push(itemData);
-    this.setState({isLoading: false});
+  componentDidMount(): void {
+    this.setState({ isLoading: false });
   }
 
   async getData() {
@@ -63,25 +52,18 @@ class DemoList extends React.PureComponent {
 
   handleChangeIndex(e) {
     if (this.isInRange(e.target.value, 0, dataList.length - 1)) {
-      this.setState({moreIndex: e.target.value});
+      this.setState({ moreIndex: e.target.value });
     } else {
       alert('OUT OF RANGE');
     }
   };
 
   loadMoreTop() {
-    topData.reverse().forEach(item => {
-      if (!this.isIdAlready(item.itemId) &&
-        this.isInRange(0, 0, dataList.length - 1)) {
-        dataList.splice(0, 0, item);
-        this.forceUpdate();
-      }
-    });
     this.isLoadTopAlready = true;
+    this.forceUpdate();
   }
 
   loadMoreBottom() {
-    bottomData.forEach(item => dataList.push(item));
     this.isLoadBottomAlready = true;
     this.forceUpdate();
   }
@@ -97,35 +79,25 @@ class DemoList extends React.PureComponent {
     return index >= startIndex && index <= endIndex;
   }
 
-  cloneObject(obj) {
-    if (null === obj || "object" !== typeof obj) return obj;
-    let copy = obj.constructor();
-    for (let attr in obj) {
-      if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
-    }
-    return copy;
-  }
-
-  randomItem(): Object {
-    const result = this.cloneObject(randomItemData);
-    const randomValue = Math.floor(Math.random() * 999 + 1);
-    result.itemId = randomItemData.itemId + randomValue;
-    result.name.first = randomItemData.name.first + randomValue;
+  randomItem(index): Object {
+    const result = { ...fakeData };
+    result.itemId = result.itemId + index;
+    result.userName = result.userName + index;
+    result.msgContent = ListMessageExample[Math.floor(Math.random() * 20)];
+    result.avatar = result.avatar + Math.floor(Math.random() * 99) + ".jpg";
     return result;
   }
 
-  fakeDataList() {
+  _fakeDataList() {
     let _fakeDataList = [];
-    for(let i = 0; i< DATA_NUMBER; i++) {
-      const result = this.cloneObject(fakeData);
-      result.itemId = fakeData.itemId + i;
-      _fakeDataList.push(result);
+    for (let i = 0; i < DATA_NUMBER; i++) {
+      _fakeDataList.push(this.randomItem(i));
     }
     return _fakeDataList;
   }
 
   onAddItem() {
-    const {moreIndex} = this.state;
+    const { moreIndex } = this.state;
     const item = this.randomItem();
     if (!this.isIdAlready(item.itemId) &&
       this.isInRange(moreIndex, 0, dataList.length - 1)) {
@@ -135,7 +107,7 @@ class DemoList extends React.PureComponent {
   }
 
   _renderControlView = () => {
-    const {moreIndex} = this.state;
+    const { moreIndex } = this.state;
     return (
       <div className={'control-view'}>
         <input className={'input-demo input-index'}
@@ -155,7 +127,7 @@ class DemoList extends React.PureComponent {
 
   _renderBtnTop = () => {
     return (
-      <div style={{display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end'}}>
+      <div style={{ display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end' }}>
         <button onClick={this.loadMoreTop}
                 className={this.isLoadTopAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
           Load more top...
@@ -164,13 +136,12 @@ class DemoList extends React.PureComponent {
     )
   };
 
-  _renderList = (dataList) => {
-    const fakeData = this.fakeDataList();
+  _renderList = () => {
     return (
       <Masonry height={500}
-               style={{marginTop: "10px", borderRadius: '5px'}}
+               style={{ marginTop: "10px", borderRadius: '5px' }}
                id={'Masonry'}
-               data={fakeData}
+               data={this.fakeDataList}
                cellMeasurerCache={this._cache}
                preRenderCellCount={3}/>
     )
@@ -178,7 +149,7 @@ class DemoList extends React.PureComponent {
 
   _renderBtnBottom = () => {
     return (
-      <div style={{display: 'flex', paddingTop: "20px", paddingRight: '20px', justifyContent: 'flex-end'}}>
+      <div style={{ display: 'flex', paddingTop: "20px", paddingRight: '20px', justifyContent: 'flex-end' }}>
         <button onClick={this.loadMoreBottom}
                 className={this.isLoadBottomAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
           Load more bottom...
@@ -188,7 +159,7 @@ class DemoList extends React.PureComponent {
   };
 
   render() {
-    const {isLoading} = this.state;
+    const { isLoading } = this.state;
     return (
       isLoading ?
         <div>Loading...</div>
@@ -196,7 +167,7 @@ class DemoList extends React.PureComponent {
         <div className={'container'}>
           {this._renderControlView()}
           {this._renderBtnTop()}
-          {this._renderList(dataList)}
+          {this._renderList()}
           {this._renderBtnBottom()}
         </div>
     );
