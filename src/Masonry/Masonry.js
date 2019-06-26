@@ -123,10 +123,10 @@ class Masonry extends React.Component<Props> {
         case "object": {
           const mess = new Message({
             id: data[index].itemId,
-            userAvatarUrl: data[index].picture.thumbnail,
-            userName: data[index].itemId,
-            messageContent: data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + data[index].itemId + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId + ', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId+', ' + data[index].itemId,
-            sentTime: data[index].registered.date
+            userAvatarUrl: data[index].avatar,
+            userName: data[index].userName,
+            messageContent: data[index].msgContent,
+            sentTime: data[index].timestamp
           });
 
           const cellMeasurer = new CellMeasurer({
@@ -265,7 +265,7 @@ console.log('aa'
     // this loop is run in each render
     data.forEach((item) => {
       if (this._itemsMap.has(item.itemId)) {
-        totalHeight += Math.round(this._itemsMap.get(item.itemId).height);
+        totalHeight += this._itemsMap.get(item.itemId).height;
       } else {
         totalHeight += defaultHeight;
       }
@@ -374,7 +374,7 @@ console.log('aa'
    *        + (number): top coordinate of item.
    *        + NOT_FOUND (-1): if item is NOT in _positionMaps.
    */
-  _getPositionOfItem(itemId: string): number {
+  _getPosition(itemId: string): number {
     return this._itemsMap.has(itemId) ? this._itemsMap.get(itemId).position : NOT_FOUND
   }
 
@@ -390,8 +390,8 @@ console.log('aa'
     if (positionTop >= this._getEstimatedTotalHeight()) return this._getItemIdFromIndex(this.props.data.length - 1);
 
     for (let key of this._itemsMap.keys()) {
-      if (positionTop >= this._itemsMap.get(key).position &&
-        positionTop < this._itemsMap.get(key).position + this._itemsMap.get(key).height) {
+      if (positionTop >= this._getPosition(key) &&
+        positionTop < this._getPosition(key) + this._itemsMap.get(key).height) {
         return key;
       }
     }
