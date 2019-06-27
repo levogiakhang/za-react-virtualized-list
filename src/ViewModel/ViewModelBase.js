@@ -1,10 +1,16 @@
 import type { IViewModel } from "./IViewModel";
 
 class ViewModelBase implements IViewModel{
-  constructor(itemId) {
-    this.itemId = itemId;
+  constructor() {
+
   }
 
   onRemove(itemId) {
+    // masonry.remove...
+  }
+
+  onAdd(index) {
   }
 }
+
+export default ViewModelBase;
