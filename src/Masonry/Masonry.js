@@ -217,7 +217,7 @@ class Masonry extends React.Component<Props> {
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
     if (this._getHeight(itemId) !== newHeight) {
-      this._updateItemsPositionWhenItemChangedHeight(itemId, newHeight);
+      this._updateItemsOnChangedHeight(itemId, newHeight);
       this._scrollToItem(this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
         this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
       this.forceUpdate();
@@ -279,7 +279,7 @@ class Masonry extends React.Component<Props> {
     const itemIndex = this._getIndex(itemId);
 
     // remove an item means this item has new height equals 0
-    this._updateItemsPositionWhenItemChangedHeight(itemId, 0);
+    this._updateItemsOnChangedHeight(itemId, 0);
 
     // Remove item on data list, rendered maps and position maps
     data.splice(itemIndex, 1);
@@ -331,7 +331,7 @@ class Masonry extends React.Component<Props> {
   /*
    *  Update other items' position below the item that changed height.
    */
-  _updateItemsPositionWhenItemChangedHeight(itemId: string, newHeight: number) {
+  _updateItemsOnChangedHeight(itemId: string, newHeight: number) {
     this._updateItemOnMap(itemId,
       this._getIndex(itemId),
       newHeight,
