@@ -24,30 +24,11 @@ class DemoList extends React.PureComponent {
 
     this._cache = new CellMeasurerCache({
       defaultHeight: 200,
-      height: 270,
     });
   }
 
   componentDidMount(): void {
     this.setState({ isLoading: false });
-  }
-
-  async getData() {
-    return fetch('https://randomuser.me/api/?results=' + DATA_NUMBER)
-      .then(response => response.json())
-      .then(data => {
-        return data.results;
-      })
-      .catch(error => console.log(error));
-  };
-
-  async getRandomSentence() {
-    return fetch('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1')
-      .then(response => response.json())
-      .then(data => {
-        return data
-      })
-      .catch(error => console.log(error));
   }
 
   handleChangeIndex(e) {
@@ -68,25 +49,25 @@ class DemoList extends React.PureComponent {
     this.forceUpdate();
   }
 
-  isIdAlready(id: string): boolean {
+  isIdAlready = function (id: string): boolean {
     for (let i = 0; i <= dataList.length - 1; i++) {
       if (dataList[i].itemId === id) return true;
     }
     return false;
-  }
+  };
 
-  isInRange(index: number, startIndex: number, endIndex: number): boolean {
+  isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
     return index >= startIndex && index <= endIndex;
-  }
+  };
 
-  randomItem(index): Object {
+  randomItem = function (index): Object {
     const result = { ...fakeData };
     result.itemId = result.itemId + index;
     result.userName = result.userName + index;
     result.msgContent = ListMessageExample[Math.floor(Math.random() * 20)];
     result.avatar = result.avatar + Math.floor(Math.random() * 99) + ".jpg";
     return result;
-  }
+  };
 
   _fakeDataList() {
     let _fakeDataList = [];
