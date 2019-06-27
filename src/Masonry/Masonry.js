@@ -16,6 +16,8 @@ type Props = {
   preRenderCellCount: number,
   data: any,
   cellMeasurerCache: CellMeasurerCache,
+  loadMoreTop?: any,
+  loadMoreBottom?: any,
 };
 
 class Masonry extends React.Component<Props> {
@@ -32,6 +34,7 @@ class Masonry extends React.Component<Props> {
     this.firstLoadingCount = 0;
     // Trigger is the first loading.
     this.isFirstLoading = true;
+    this.isLoadMoreTop = true;
 
     // for add more above
     this.currentItemInViewport = new Map();
@@ -52,6 +55,7 @@ class Masonry extends React.Component<Props> {
     this._onResize = this._onResize.bind(this);
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
+    this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
 
     this.init();
   }
@@ -81,6 +85,40 @@ class Masonry extends React.Component<Props> {
     window.removeEventListener('resize', this._onResize);
   }
 
+  onChildrenChangeHeight(itemId: string, newHeight: number) {
+    if (this._getHeight(itemId) !== newHeight) {
+      this._updateItemsOnChangedHeight(itemId, newHeight);
+      this._scrollToItem(this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
+        this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
+      this.forceUpdate();
+    }
+  }
+
+  onRemoveItem(itemId: string) {
+    const { data } = this.props;
+    const itemIndex = this._getIndex(itemId);
+
+    // remove an item means this item has new height equals 0
+    this._updateItemsOnChangedHeight(itemId, 0);
+
+    // Remove item on data list, rendered maps and position maps
+    data.splice(itemIndex, 1);
+
+    // Update index to id map after remove an item.
+    this._updateMapIndex(itemIndex - 1, data.length);
+    this.__indexMap__.delete(data.length);
+
+    // Update the map
+    this._updateItemIndex(itemIndex);
+    this.__itemsMap__.delete(itemId);
+
+    this.forceUpdate();
+  }
+
+  scrollToSpecialItem(itemId: string) {
+    this._scrollToItem(itemId, 0);
+  };
+
   render() {
     const {
       className,
@@ -89,10 +127,17 @@ class Masonry extends React.Component<Props> {
       style,
       isScrolling,
       data,
-      cellMeasurerCache
+      cellMeasurerCache,
+      loadMoreTop
     } = this.props;
 
     const { scrollTop } = this.state;
+    if (scrollTop < 300 && !this.isFirstLoading && this.isLoadMoreTop) {
+      //loadMoreTop();
+      this.isLoadMoreTop = false;
+      //this._scrollToItem('id_0');
+    }
+
     const estimateTotalHeight = this._getEstimatedTotalHeight();
 
     this.currentItemInViewport.set(CURRENT_ITEM_IN_VIEWPORT, {
@@ -215,15 +260,6 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  onChildrenChangeHeight(itemId: string, newHeight: number) {
-    if (this._getHeight(itemId) !== newHeight) {
-      this._updateItemsOnChangedHeight(itemId, newHeight);
-      this._scrollToItem(this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
-        this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity);
-      this.forceUpdate();
-    }
-  }
-
   _onScroll() {
     this.setState({ scrollTop: this.masonry.scrollTop });
   }
@@ -272,27 +308,6 @@ class Masonry extends React.Component<Props> {
 
   _updateItemOnMap(itemId: string, itemIndex: number, itemHeight: number, itemPosition: number) {
     this.__itemsMap__.set(itemId, { index: itemIndex, height: itemHeight, position: itemPosition });
-  }
-
-  onRemoveItem(itemId: string) {
-    const { data } = this.props;
-    const itemIndex = this._getIndex(itemId);
-
-    // remove an item means this item has new height equals 0
-    this._updateItemsOnChangedHeight(itemId, 0);
-
-    // Remove item on data list, rendered maps and position maps
-    data.splice(itemIndex, 1);
-
-    // Update index to id map after remove an item.
-    this._updateMapIndex(itemIndex - 1, data.length);
-    this.__indexMap__.delete(data.length);
-
-    // Update the map
-    this._updateItemIndex(itemIndex);
-    this.__itemsMap__.delete(itemId);
-
-    this.forceUpdate();
   }
 
   _updateMapIndex(startIndex: number, endIndex: number) {
@@ -479,7 +494,7 @@ class Masonry extends React.Component<Props> {
     return results;
   }
 
-  _scrollToItem(itemId: string, disparity) {
+  _scrollToItem(itemId: string, disparity = 0) {
     if (this._hasItem(itemId)) {
       this._scrollToOffset(this._getPosition(itemId) + disparity);
     }

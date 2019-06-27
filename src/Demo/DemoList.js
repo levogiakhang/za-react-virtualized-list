@@ -7,7 +7,7 @@ import { ListMessageExample } from "../utils/ListMessageExample";
 
 let dataList = [];
 
-const DATA_NUMBER = 50;
+const DATA_NUMBER = 30;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -17,22 +17,36 @@ class DemoList extends React.PureComponent {
       moreIndex: 0,
     };
 
-    this.isLoadTopAlready = false;
-    this.isLoadBottomAlready = false;
+    this.loadTopCount = 2;
 
     this.fakeDataList = this._fakeDataList();
-
+    this.itemCount = DATA_NUMBER;
     this._cache = new CellMeasurerCache({
       defaultHeight: 200,
     });
+
+    this.handleChangeIndex = this.handleChangeIndex.bind(this);
+    this.loadMoreTop = this.loadMoreTop.bind(this);
+    this.loadMoreBottom = this.loadMoreBottom.bind(this);
+    this.onAddItem = this.onAddItem.bind(this);
+    this.scrollToItem = this.scrollToItem.bind(this);
   }
 
   componentDidMount(): void {
+    this.masonry = React.createRef();
     this.setState({ isLoading: false });
   }
 
+  _fakeDataList() {
+    let _fakeDataList = [];
+    for (let i = 0; i < DATA_NUMBER; i++) {
+      _fakeDataList.push(this._randomItem(i));
+    }
+    return _fakeDataList;
+  }
+
   handleChangeIndex(e) {
-    if (this.isInRange(e.target.value, 0, dataList.length - 1)) {
+    if (this._isInRange(e.target.value, 0, dataList.length - 1)) {
       this.setState({ moreIndex: e.target.value });
     } else {
       alert('OUT OF RANGE');
@@ -40,27 +54,43 @@ class DemoList extends React.PureComponent {
   };
 
   loadMoreTop() {
-    this.isLoadTopAlready = true;
-    this.forceUpdate();
+    if (this.loadTopCount > 0) {
+      this._generateMoreItems(10);
+      this.loadTopCount--;
+    }
   }
 
   loadMoreBottom() {
-    this.isLoadBottomAlready = true;
+    this._generateMoreItems(10, false);
     this.forceUpdate();
   }
 
-  isIdAlready = function (id: string): boolean {
+  onAddItem() {
+    const { moreIndex } = this.state;
+    const item = this._randomItem();
+    if (!this._isIdAlready(item.itemId) &&
+      this._isInRange(moreIndex, 0, dataList.length - 1)) {
+      dataList.splice(moreIndex, 0, item);
+      this.forceUpdate();
+    }
+  };
+
+  scrollToItem() {
+    this.masonry.current.scrollToSpecialItem('id_10');
+  };
+
+  _isIdAlready = function (id: string): boolean {
     for (let i = 0; i <= dataList.length - 1; i++) {
       if (dataList[i].itemId === id) return true;
     }
     return false;
   };
 
-  isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
+  _isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
     return index >= startIndex && index <= endIndex;
   };
 
-  randomItem = function (index): Object {
+  _randomItem = function (index): Object {
     const result = { ...fakeData };
     result.itemId = result.itemId + index;
     result.userName = result.userName + index;
@@ -69,23 +99,18 @@ class DemoList extends React.PureComponent {
     return result;
   };
 
-  _fakeDataList() {
-    let _fakeDataList = [];
-    for (let i = 0; i < DATA_NUMBER; i++) {
-      _fakeDataList.push(this.randomItem(i));
+  _generateMoreItems(num: number, isTop = true) {
+    if (isTop) {
+      for (let i = 1; i <= num; i++) {
+        this.fakeDataList.unshift(this._randomItem(this.itemCount + i));
+      }
+    } else {
+      for (let i = 1; i <= num; i++) {
+        this.fakeDataList.push(this._randomItem(this.itemCount + i));
+      }
     }
-    return _fakeDataList;
-  }
-
-  onAddItem() {
-    const { moreIndex } = this.state;
-    const item = this.randomItem();
-    if (!this.isIdAlready(item.itemId) &&
-      this.isInRange(moreIndex, 0, dataList.length - 1)) {
-      dataList.splice(moreIndex, 0, item);
-      this.forceUpdate();
-    }
-  }
+    this.itemCount += num;
+  };
 
   _renderControlView = () => {
     const { moreIndex } = this.state;
@@ -102,29 +127,23 @@ class DemoList extends React.PureComponent {
           Add new item at
         </button>
 
+        <button onClick={this.scrollToItem}> Scroll To</button>
+
       </div>
     );
-  };
-
-  _renderBtnTop = () => {
-    return (
-      <div style={{ display: 'flex', paddingTop: "50px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreTop}
-                className={this.isLoadTopAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
-          Load more top...
-        </button>
-      </div>
-    )
   };
 
   _renderList = () => {
     return (
       <Masonry height={500}
+               ref={this.masonry}
                style={{ marginTop: "10px", borderRadius: '5px' }}
                id={'Masonry'}
                data={this.fakeDataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={3}/>
+               preRenderCellCount={3}
+               loadMoreTop={this.loadMoreTop}
+               loadMoreBottom={this.loadMoreBottom}/>
     )
   };
 
@@ -132,7 +151,7 @@ class DemoList extends React.PureComponent {
     return (
       <div style={{ display: 'flex', paddingTop: "20px", paddingRight: '20px', justifyContent: 'flex-end' }}>
         <button onClick={this.loadMoreBottom}
-                className={this.isLoadBottomAlready ? "btn-hidden btn-load-more" : "btn-load-more"}>
+                className={"btn-load-more"}>
           Load more bottom...
         </button>
       </div>
@@ -147,7 +166,6 @@ class DemoList extends React.PureComponent {
         :
         <div className={'container'}>
           {this._renderControlView()}
-          {this._renderBtnTop()}
           {this._renderList()}
           {this._renderBtnBottom()}
         </div>
