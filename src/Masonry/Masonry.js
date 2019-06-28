@@ -56,6 +56,7 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
     this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
+    this._updateMapOnDataChanged = this._updateMapOnDataChanged.bind(this);
 
     this.init();
   }
@@ -137,6 +138,8 @@ class Masonry extends React.Component<Props> {
       this.isLoadMoreTop = false;
       //this._scrollToItem('id_0');
     }
+
+    this._updateMapOnDataChanged();
 
     const estimateTotalHeight = this._getEstimatedTotalHeight();
 
@@ -238,17 +241,8 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const { data, cellMeasurerCache } = this.props;
-    if (this.oldDataLength < data.length) {
-      // update rendered maps when data has added more.
-      data.forEach((item) => {
-        if (!this._hasItem(item.itemId)) {
-          this._updateItemOnMap(item.itemId, data.indexOf(item), cellMeasurerCache.defaultHeight, 0);
-        }
-      });
-      this._updateMapIndex(0, data.length);
-      this._updateItemsPosition();
-    }
+    const { data } = this.props;
+
     // check add or remove item above
     // remove
     if (this.oldDataLength !== data.length) {
@@ -260,9 +254,34 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  _onScroll() {
-    this.setState({ scrollTop: this.masonry.scrollTop });
+  _updateMapOnDataChanged() {
+    const { data, cellMeasurerCache: { defaultHeight } } = this.props;
+    if (this.oldDataLength < data.length) {
+      // update rendered maps when data has added more.
+      data.forEach((item) => {
+        if (!this._hasItem(item.itemId)) {
+          this._updateItemOnMap(item.itemId, data.indexOf(item), defaultHeight, 0);
+        }
+      });
+      this._updateMapIndex(0, data.length);
+      this._updateItemsPosition();
+    }
   }
+
+  _onScroll(event) {
+    const { height } = this.props;
+    const eventScrollTop = event.target.scrollTop;
+    const scrollTop = Math.min(
+      Math.max(0, this._getEstimatedTotalHeight() - height),
+      eventScrollTop
+    );
+
+    if (eventScrollTop !== scrollTop) return;
+
+    if (this.state.scrollTop !== scrollTop) {
+      this.setState({ scrollTop });
+    }
+  };
 
   _onResize() {
     if (this.resizeMap.size === 0)
@@ -295,7 +314,7 @@ class Masonry extends React.Component<Props> {
     let totalHeight = 0;
 
     // TODO: Improve algorithm
-    // this loop is run in each render
+    // total height = sigma (rendered items) + non-rendered items * default height.
     data.forEach((item) => {
       if (this._hasItem(item.itemId)) {
         totalHeight += this._getHeight(item.itemId);
@@ -460,14 +479,14 @@ class Masonry extends React.Component<Props> {
    */
   _getItemsInViewport(scrollTop: number, viewportHeight: number): Array<string> {
     const itemIdStart = this._getItemIdFromPosition(scrollTop);
-    const results = new Array(0);
+    const results = [];
 
     if (itemIdStart !== NOT_FOUND) {
       results.push(itemIdStart);
 
       // disparity > 0 when scrollTop position is between `the item's position` and `item's position + its height`.
       const disparity = scrollTop - this._getPosition(itemIdStart);
-      let remainingView = viewportHeight - this._getHeight(itemIdStart) + disparity;
+      let remainingViewHeight = viewportHeight - this._getHeight(itemIdStart) + disparity;
 
       let i = 1;
       let itemIndex = this._getIndex(itemIdStart);
@@ -478,15 +497,16 @@ class Masonry extends React.Component<Props> {
       let nextItemId = this._getItemIdFromIndex(itemIndex + i);
       let nextItemHeight = this._getHeight(nextItemId);
 
-      while (remainingView > nextItemHeight) {
-        remainingView -= nextItemHeight;
+      while (remainingViewHeight > nextItemHeight) {
+        remainingViewHeight -= nextItemHeight;
         results.push(nextItemId);
         i++;
         nextItemId = this._getItemIdFromIndex(itemIndex + i);
-        if (nextItemId !== OUT_OF_RANGE)
+        if (nextItemId !== OUT_OF_RANGE) {
           nextItemHeight = this._getHeight(nextItemId);
+        }
       }
-      if (remainingView > 0) {
+      if (remainingViewHeight > 0) {
         results.push(nextItemId);
       }
     }
