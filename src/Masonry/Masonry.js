@@ -8,6 +8,7 @@ import Message from "../Message/Message";
 import { DEBOUNCING_TIMER, NOT_FOUND, OUT_OF_RANGE, CURRENT_ITEM_IN_VIEWPORT } from "../utils/value";
 import debounce from "../utils/debounce";
 import CellMeasurerModel from "../Model/CellMeasurerModel";
+import MessageModel from "../Model/MessageModel";
 
 type Props = {
   className?: string,
@@ -164,12 +165,14 @@ class Masonry extends React.Component<Props> {
       const index = this._getIndex(itemsInBatch[i]);
       switch (typeof data[index]) {
         case "object": {
-          const mess = new Message({
+          const mess = new MessageModel({
             id: data[index].itemId,
             userAvatarUrl: data[index].avatar,
             userName: data[index].userName,
             messageContent: data[index].msgContent,
-            sentTime: data[index].timestamp
+            sentTime: data[index].timestamp,
+            isMine: false,
+            onRemoveItem: this.onRemoveItem,
           });
 
           const cellMeasurer = new CellMeasurerModel({
@@ -184,15 +187,15 @@ class Masonry extends React.Component<Props> {
                           cache={cellMeasurer.getCache}
                           onChangedHeight={this.onChildrenChangeHeight}
                           position={cellMeasurer.getPosition}>
-              <Message id={mess.getId}
-                       key={mess.getId}
+              <Message id={mess.getItemId()}
+                       key={mess.getItemId()}
                        index={index}
                        userAvatarUrl={mess.getUserAvatarUrl}
                        userName={mess.getUserName}
                        messageContent={mess.getMessageContent}
                        sentTime={mess.getSentTime}
-                       isMine={false}
-                       onRemoveItem={this.onRemoveItem}/>
+                       isMine={mess.isMine}
+                       onRemoveItem={mess.onRemoveCallBack}/>
             </CellMeasurer>
           );
           break;

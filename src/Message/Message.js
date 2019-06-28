@@ -1,13 +1,12 @@
 // @flow
 
 import React from 'react';
-import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
-import type { ModelBase } from "../ModelBase/ModelBase";
-import ViewModelBase from "../ViewModel/ViewModelBase";
+import MessageModel from "../Model/MessageModel";
+import MessageViewModel from "../ViewModel/MessageViewModel";
 
-export default class Message extends React.PureComponent<MessageProps> implements ModelBase {
+export default class Message extends React.PureComponent<MessageModel>{
   constructor(props) {
     super(props);
 
@@ -15,17 +14,15 @@ export default class Message extends React.PureComponent<MessageProps> implement
       isExpanded: false,
     };
 
-    this.viewModel = new ViewModelBase();
+    this.viewModel = new MessageViewModel();
+    this.model = props;
 
     this._onClick = this._onClick.bind(this);
     this._onRemove = this._onRemove.bind(this);
   }
 
-  componentDidMount() {
-  }
-
   render() {
-    const { id, index, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.props;
+    const { id, index, userAvatarUrl, userName, messageContent, sentTime, isMine } = this.model;
     const { isExpanded } = this.state;
 
     return (
@@ -116,30 +113,6 @@ export default class Message extends React.PureComponent<MessageProps> implement
     );
   }
 
-  get getItemId(): string {
-    return this.props.id;
-  }
-
-  get getUserAvatarUrl(): string {
-    return this.props.userAvatarUrl;
-  }
-
-  get getUserName(): string {
-    return this.props.userName;
-  }
-
-  get getMessageContent(): string {
-    return this.props.messageContent;
-  }
-
-  get getSentTime(): string {
-    return this.props.sentTime;
-  }
-
-  get getIsMine(): boolean {
-    return this.props.isMine;
-  }
-
   _getDisplayTime = (time): string => {
     let minutes = time.getMinutes();
     if (time.getMinutes() < 10) {
@@ -160,6 +133,6 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   _onRemove() {
-    this.viewModel.onRemove(this.props.id, this.props.onRemoveItem);
+    this.viewModel.onRemove(this.model.id, this.model.onRemoveItem);
   }
 }
