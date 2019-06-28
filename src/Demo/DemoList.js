@@ -5,8 +5,6 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 
-let dataList = [];
-
 const DATA_NUMBER = 30;
 
 class DemoList extends React.PureComponent {
@@ -46,7 +44,7 @@ class DemoList extends React.PureComponent {
   }
 
   handleChangeIndex(e) {
-    if (this._isInRange(e.target.value, 0, dataList.length - 1)) {
+    if (this._isInRange(e.target.value, 0, this.fakeDataList.length)) {
       this.setState({ moreIndex: e.target.value });
     } else {
       alert('OUT OF RANGE');
@@ -67,10 +65,11 @@ class DemoList extends React.PureComponent {
 
   onAddItem() {
     const { moreIndex } = this.state;
-    const item = this._randomItem();
+    const item = this._randomItem(this.itemCount);
+    this.itemCount++;
     if (!this._isIdAlready(item.itemId) &&
-      this._isInRange(moreIndex, 0, dataList.length - 1)) {
-      dataList.splice(moreIndex, 0, item);
+      this._isInRange(moreIndex, 0, this.fakeDataList.length )) {
+      this.fakeDataList.splice(moreIndex, 0, item);
       this.forceUpdate();
     }
   };
@@ -80,8 +79,8 @@ class DemoList extends React.PureComponent {
   };
 
   _isIdAlready = function (id: string): boolean {
-    for (let i = 0; i <= dataList.length - 1; i++) {
-      if (dataList[i].itemId === id) return true;
+    for (let i = 0; i <= this.fakeDataList.length - 1; i++) {
+      if (this.fakeDataList[i].itemId === id) return true;
     }
     return false;
   };
@@ -101,11 +100,11 @@ class DemoList extends React.PureComponent {
 
   _generateMoreItems(num: number, isTop = true) {
     if (isTop) {
-      for (let i = 1; i <= num; i++) {
+      for (let i = 0; i < num; i++) {
         this.fakeDataList.unshift(this._randomItem(this.itemCount + i));
       }
     } else {
-      for (let i = 1; i <= num; i++) {
+      for (let i = 0; i < num; i++) {
         this.fakeDataList.push(this._randomItem(this.itemCount + i));
       }
     }
