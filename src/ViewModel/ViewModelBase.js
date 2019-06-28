@@ -5,8 +5,8 @@ class ViewModelBase implements IViewModel{
 
   }
 
-  onRemove(itemId) {
-    // masonry.remove...
+  onRemove(itemId, removeCallback) {
+    removeCallback(itemId);
   }
 
   onAdd(index) {

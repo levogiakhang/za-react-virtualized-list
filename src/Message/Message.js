@@ -5,7 +5,7 @@ import { MessageProps } from './type';
 import './css/TheirMessage.css'
 import './css/MyMessage.css'
 import type { ModelBase } from "../ModelBase/ModelBase";
-import MessageViewModel from "../ViewModel/MessageViewModel";
+import ViewModelBase from "../ViewModel/ViewModelBase";
 
 export default class Message extends React.PureComponent<MessageProps> implements ModelBase {
   constructor(props) {
@@ -15,7 +15,7 @@ export default class Message extends React.PureComponent<MessageProps> implement
       isExpanded: false,
     };
 
-    this.viewModel = new MessageViewModel();
+    this.viewModel = new ViewModelBase();
 
     this._onClick = this._onClick.bind(this);
     this._onRemove = this._onRemove.bind(this);
@@ -160,7 +160,6 @@ export default class Message extends React.PureComponent<MessageProps> implement
   }
 
   _onRemove() {
-    this.viewModel.onRemove(this.props.id);
-    this.props.onRemoveItem(this.props.id);
+    this.viewModel.onRemove(this.props.id, this.props.onRemoveItem);
   }
 }
