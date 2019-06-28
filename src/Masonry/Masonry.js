@@ -18,6 +18,7 @@ type Props = {
   cellMeasurerCache: CellMeasurerCache,
   loadMoreTop?: any,
   loadMoreBottom?: any,
+  isStartAtBottom?: boolean,
 };
 
 class Masonry extends React.Component<Props> {
@@ -78,7 +79,6 @@ class Masonry extends React.Component<Props> {
     console.log(data);
     this._updateItemsPosition();
     console.log(this.__itemsMap__);
-    this.masonry.firstChild.scrollIntoView(false);
   }
 
   componentWillUnmount() {
@@ -129,7 +129,8 @@ class Masonry extends React.Component<Props> {
       isScrolling,
       data,
       cellMeasurerCache,
-      loadMoreTop
+      loadMoreTop,
+      isStartAtBottom
     } = this.props;
 
     const { scrollTop } = this.state;
@@ -154,13 +155,8 @@ class Masonry extends React.Component<Props> {
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsInBatch(scrollTop);
 
-    // Scroll to bottom when the first loading
-    if (this.masonry !== undefined && this.isFirstLoading === true) {
-      this.firstLoadingCount++;
-      this._scrollToItem(this._getItemIdFromIndex(data.length - 1), 0);
-      if (this.firstLoadingCount - 1 >= itemsInBatch.length) {
-        this.isFirstLoading = false;
-      }
+    if(isStartAtBottom) {
+      this._scrollToBottomAtFirst(itemsInBatch);
     }
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
@@ -251,6 +247,19 @@ class Masonry extends React.Component<Props> {
         this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
         this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).disparity
       );
+    }
+  }
+
+  /*
+   * Scroll to bottom when the first loading
+   */
+  _scrollToBottomAtFirst(itemsInBatch) {
+    if (this.masonry !== undefined && this.isFirstLoading === true) {
+      this.firstLoadingCount++;
+      this._scrollToItem(this._getItemIdFromIndex(this.props.data.length - 1), 0);
+      if (this.firstLoadingCount - 1 >= itemsInBatch.length) {
+        this.isFirstLoading = false;
+      }
     }
   }
 

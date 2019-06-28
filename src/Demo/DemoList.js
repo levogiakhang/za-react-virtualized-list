@@ -143,7 +143,8 @@ class DemoList extends React.PureComponent {
                cellMeasurerCache={this._cache}
                preRenderCellCount={3}
                loadMoreTop={this.loadMoreTop}
-               loadMoreBottom={this.loadMoreBottom}/>
+               loadMoreBottom={this.loadMoreBottom}
+               isStartAtBottom={true}/>
     )
   };
 
