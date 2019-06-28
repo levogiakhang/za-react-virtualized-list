@@ -7,6 +7,7 @@ import * as ReactDOM from "react-dom";
 import Message from "../Message/Message";
 import { DEBOUNCING_TIMER, NOT_FOUND, OUT_OF_RANGE, CURRENT_ITEM_IN_VIEWPORT } from "../utils/value";
 import debounce from "../utils/debounce";
+import CellMeasurerModel from "../Model/CellMeasurerModel";
 
 type Props = {
   className?: string,
@@ -171,20 +172,20 @@ class Masonry extends React.Component<Props> {
             sentTime: data[index].timestamp
           });
 
-          const cellMeasurer = new CellMeasurer({
-            cache: cellMeasurerCache,
+          const cellMeasurer = new CellMeasurerModel({
             id: data[index].itemId,
+            cache: cellMeasurerCache,
             position: { top: this._getPosition(itemsInBatch[i]), left: 0 },
           });
 
           children.push(
-            <CellMeasurer cache={cellMeasurer.getCache}
-                          id={cellMeasurer.getCellId}
-                          key={cellMeasurer.getCellId}
+            <CellMeasurer id={cellMeasurer.getItemId()}
+                          key={cellMeasurer.getItemId()}
+                          cache={cellMeasurer.getCache}
                           onChangedHeight={this.onChildrenChangeHeight}
-                          position={cellMeasurer.getCellPosition}>
-              <Message id={mess.getItemId}
-                       key={mess.getItemId}
+                          position={cellMeasurer.getPosition}>
+              <Message id={mess.getId}
+                       key={mess.getId}
                        index={index}
                        userAvatarUrl={mess.getUserAvatarUrl}
                        userName={mess.getUserName}
