@@ -155,7 +155,7 @@ class Masonry extends React.Component<Props> {
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsInBatch(scrollTop);
 
-    if(isStartAtBottom) {
+    if (isStartAtBottom) {
       this._scrollToBottomAtFirst(itemsInBatch);
     }
 
@@ -256,8 +256,9 @@ class Masonry extends React.Component<Props> {
   _scrollToBottomAtFirst(itemsInBatch) {
     if (this.masonry !== undefined && this.isFirstLoading === true) {
       this.firstLoadingCount++;
-      this._scrollToItem(this._getItemIdFromIndex(this.props.data.length - 1), 0);
-      if (this.firstLoadingCount - 1 >= itemsInBatch.length) {
+      const lastItemId = this._getItemIdFromIndex(this.props.data.length - 1);
+      this._scrollToItem(lastItemId, this._getHeight(lastItemId));
+      if (this.firstLoadingCount > itemsInBatch.length + 10) {
         this.isFirstLoading = false;
       }
     }
