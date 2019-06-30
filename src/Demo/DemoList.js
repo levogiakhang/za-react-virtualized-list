@@ -75,7 +75,7 @@ class DemoList extends React.PureComponent {
   };
 
   scrollToItem() {
-    this.masonry.current.scrollToSpecialItem('id_10');
+    this.masonry.current.scrollToSpecialItem('id_26');
   };
 
   _isIdAlready = function (id: string): boolean {
@@ -140,7 +140,7 @@ class DemoList extends React.PureComponent {
                id={'Masonry'}
                data={this.fakeDataList}
                cellMeasurerCache={this._cache}
-               preRenderCellCount={3}
+               numOfOverscan={3}
                loadMoreTop={this.loadMoreTop}
                loadMoreBottom={this.loadMoreBottom}
                isStartAtBottom={true}/>
