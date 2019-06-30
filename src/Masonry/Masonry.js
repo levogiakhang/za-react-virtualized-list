@@ -92,6 +92,7 @@ class Masonry extends React.Component<Props> {
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
     if (this._getHeight(itemId) !== newHeight) {
+      //console.log(itemId)
       this._updateRenderedItem(itemId, newHeight);
       this._updateItemsOnChangedHeight(itemId, newHeight);
       this._scrollToItem(this.currentItemInViewport.get(CURRENT_ITEM_IN_VIEWPORT).itemId,
@@ -170,6 +171,8 @@ class Masonry extends React.Component<Props> {
     if (isStartAtBottom) {
       this._scrollToBottomAtFirst(itemsInBatch);
     }
+
+    //console.log(itemsInBatch);
 
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this._getIndex(itemsInBatch[i]);
@@ -337,15 +340,12 @@ class Masonry extends React.Component<Props> {
 
     let totalHeight = 0;
 
-    // TODO: Improve algorithm
     // total height = sigma (rendered items) + non-rendered items * default height.
-    data.forEach((item) => {
-      if (this._hasItem(item.itemId)) {
-        totalHeight += this._getHeight(item.itemId);
-      } else {
-        totalHeight += defaultHeight;
-      }
-    });
+    for (let key of this.__renderedItems__.keys()) {
+      totalHeight += this._getRealHeight(key);
+    }
+    totalHeight += defaultHeight * (data.length - this.__renderedItems__.size);
+
     return totalHeight;
   }
 
