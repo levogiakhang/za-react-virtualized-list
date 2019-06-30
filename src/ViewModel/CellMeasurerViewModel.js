@@ -1,7 +1,7 @@
 class CellMeasurerViewModel {
-  constructor(props) {
-    this._cellMeasurer = props.node;
-    this.model = props.model;
+  constructor({node: cellMeasurer, model: model}) {
+    this.cellMeasurer = cellMeasurer;
+    this.model = model;
 
     this._oldHeight = this.model.cache.defaultHeight;
     this._newHeight = undefined;
@@ -26,12 +26,12 @@ class CellMeasurerViewModel {
 
   _getCellHeight() {
     if (
-      this._cellMeasurer &&
-      this._cellMeasurer.ownerDocument &&
-      this._cellMeasurer.ownerDocument.defaultView &&
-      this._cellMeasurer instanceof this._cellMeasurer.ownerDocument.defaultView.HTMLElement
+      this.cellMeasurer &&
+      this.cellMeasurer.ownerDocument &&
+      this.cellMeasurer.ownerDocument.defaultView &&
+      this.cellMeasurer instanceof this.cellMeasurer.ownerDocument.defaultView.HTMLElement
     ) {
-      return Math.round(this._cellMeasurer.offsetHeight);
+      return Math.round(this.cellMeasurer.offsetHeight);
     }
   }
 }
