@@ -1,0 +1,31 @@
+.btn-scroll-bottom {
+    -webkit-box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
+    background-color: white;
+    border: none;
+    color: #a1aab2;
+    min-width: 32px;
+    min-height: 32px;
+    text-shadow: none;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.btn-scroll-bottom > i {
+    border: solid #a1aab2;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 2px;
+}
+
+.btn-scroll-bottom:hover > i {
+    border: solid #0068ff;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 2px;
+}
+
+.down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+}

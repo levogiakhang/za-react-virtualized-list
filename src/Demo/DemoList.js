@@ -78,6 +78,7 @@ class DemoList extends React.PureComponent {
   };
 
   scrollToItem() {
+    console.log(this.masonry);
     this.masonry.current.scrollToSpecialItem('id_26');
   };
 

@@ -1,6 +1,7 @@
 // @flow
 
 import React from 'react';
+import './Masonry.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import * as ReactDOM from "react-dom";
@@ -26,6 +27,7 @@ type Props = {
   loadMoreTopFunc?: any,
   loadMoreBottomFunc?: any,
   isStartAtBottom?: boolean,
+  hideScrollToBottomBtn?: boolean
 };
 
 const LOAD_MORE_TOP_TRIGGER_POS = 500;
@@ -39,7 +41,8 @@ class Masonry extends React.Component<Props> {
     data: [],
     cellMeasurerCache: new CellMeasurerCache({ defaultHeight: DEFAULT_HEIGHT }),
     numOfOverscan: 3,
-    isStartAtBottom: false
+    isStartAtBottom: false,
+    hideScrollToBottomBtn: false,
   };
 
   constructor(props) {
@@ -82,6 +85,10 @@ class Masonry extends React.Component<Props> {
 
     // Represents this element.
     this.masonry = undefined;
+    this.btnScrollBottomPos = {
+      top: 0,
+      right: 20,
+    };
 
     this._onScroll = this._onScroll.bind(this);
     this._onResize = this._onResize.bind(this);
@@ -89,7 +96,7 @@ class Masonry extends React.Component<Props> {
     this.onRemoveItem = this.onRemoveItem.bind(this);
     this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
     this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
-
+    this.scrollToBottom = this.scrollToBottom.bind(this);
     this.init();
   }
 
@@ -112,13 +119,17 @@ class Masonry extends React.Component<Props> {
     if (defaultHeight === undefined) {
       this.cache = new CellMeasurerCache({ defaultHeight: DEFAULT_HEIGHT });
     }
+    this.grandRef = React.createRef();
   }
 
   componentDidMount() {
-    const { data } = this.props;
-    this.masonry = ReactDOM.findDOMNode(this);
+    const { data, height } = this.props;
+    this.masonry = ReactDOM.findDOMNode(this).firstChild;
     this.masonry.addEventListener('scroll', this._onScroll);
     window.addEventListener('resize', debounce(this._onResize, DEBOUNCING_TIMER));
+    if (this.grandRef !== undefined) {
+      this.btnScrollBottomPos.top = this.grandRef.current.offsetTop + height - 50;
+    }
     console.log(data);
     this._updateItemsPosition();
     console.log(this.__itemsMap__);
@@ -174,6 +185,10 @@ class Masonry extends React.Component<Props> {
       // waiting for rendering already
       this._scrollToItem(itemId, 0);
     }
+  };
+
+  scrollToBottom() {
+    this.masonry.scrollTo(0, this._getEstimatedTotalHeight());
   };
 
   render() {
@@ -300,34 +315,48 @@ class Masonry extends React.Component<Props> {
     }
 
     return (
-      <div className={className}
-           id={id}
-           onScroll={this._onScroll}
-           style={{
-             backgroundColor: 'cornflowerblue',
-             boxSizing: 'border-box',
-             overflowX: 'hidden',
-             overflowY: estimateTotalHeight < height ? 'hidden' : 'auto',
-             width: 'auto',
-             minWidth: '550px',
-             minHeight: '500px',
-             height: height,
-             position: 'relative',
-             willChange: 'transform',
-             ...style
-           }}>
-        <div className="innerScrollContainer"
+      <div ref={this.grandRef}>
+        <div className={className}
+             id={id}
+             onScroll={this._onScroll}
              style={{
-               width: '100%',
-               height: estimateTotalHeight,
-               maxWidth: '100%',
-               maxHeight: estimateTotalHeight,
-               overflow: 'hidden',
+               backgroundColor: 'cornflowerblue',
+               boxSizing: 'border-box',
+               overflowX: 'hidden',
+               overflowY: estimateTotalHeight < height ? 'hidden' : 'auto',
+               width: 'auto',
+               minWidth: '550px',
+               minHeight: '500px',
+               height: height,
                position: 'relative',
-               pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+               willChange: 'transform',
+               ...style
              }}>
-          {children}
+          <div className="innerScrollContainer"
+               style={{
+                 width: '100%',
+                 height: estimateTotalHeight,
+                 maxWidth: '100%',
+                 maxHeight: estimateTotalHeight,
+                 overflow: 'hidden',
+                 position: 'relative',
+                 pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+               }}>
+            {children}
+          </div>
         </div>
+        {
+          scrollTop <= estimateTotalHeight - height - 200 ? <button
+            className={'btn-scroll-bottom'}
+            onClick={this.scrollToBottom}
+            style={{
+              position: 'absolute',
+              right: this.btnScrollBottomPos.right,
+              top: this.btnScrollBottomPos.top
+            }}>
+            <i className={'down'}/>
+          </button> : null
+        }
       </div>
     );
   }
@@ -363,7 +392,7 @@ class Masonry extends React.Component<Props> {
    * Scroll to bottom when the first loading
    */
   _scrollToBottomAtFirst(itemsInBatch) {
-    const {data} = this.props;
+    const { data } = this.props;
     if (
       this.masonry !== undefined &&
       this.isFirstLoading === true &&
