@@ -5,7 +5,7 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 
-const DATA_NUMBER = 30;
+const DATA_NUMBER = 20;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -16,6 +16,7 @@ class DemoList extends React.PureComponent {
     };
 
     this.loadTopCount = 2;
+    this.loadBottomCount = 5;
 
     this.fakeDataList = this._fakeDataList();
     this.itemCount = DATA_NUMBER;
@@ -59,8 +60,10 @@ class DemoList extends React.PureComponent {
   }
 
   loadMoreBottom() {
-    this._generateMoreItems(10, false);
-    this.forceUpdate();
+    if (this.loadBottomCount > 0) {
+      this._generateMoreItems(10, false);
+      this.loadBottomCount--;
+    }
   }
 
   onAddItem() {
@@ -141,20 +144,9 @@ class DemoList extends React.PureComponent {
                data={this.fakeDataList}
                cellMeasurerCache={this._cache}
                numOfOverscan={3}
-               loadMoreTop={this.loadMoreTop}
-               loadMoreBottom={this.loadMoreBottom}
+               loadMoreTopFunc={this.loadMoreTop}
+               loadMoreBottomFunc={this.loadMoreBottom}
                isStartAtBottom={true}/>
-    )
-  };
-
-  _renderBtnBottom = () => {
-    return (
-      <div style={{ display: 'flex', paddingTop: "20px", paddingRight: '20px', justifyContent: 'flex-end' }}>
-        <button onClick={this.loadMoreBottom}
-                className={"btn-load-more"}>
-          Load more bottom...
-        </button>
-      </div>
     )
   };
 
@@ -167,7 +159,6 @@ class DemoList extends React.PureComponent {
         <div className={'container'}>
           {this._renderControlView()}
           {this._renderList()}
-          {this._renderBtnBottom()}
         </div>
     );
   }
