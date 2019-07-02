@@ -88,7 +88,7 @@ class Masonry extends React.Component<Props> {
     this.onChildrenChangeHeight = this.onChildrenChangeHeight.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
     this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
-    this._updateMapOnDataChanged = this._updateMapOnDataChanged.bind(this);
+    this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
 
     this.init();
   }
@@ -227,7 +227,7 @@ class Masonry extends React.Component<Props> {
       this.isLoadingBottom = true;
     }
 
-    this._updateMapOnDataChanged();
+    this._updateMapOnAddData();
 
     const curItem = this._getItemIdFromPosition(scrollTop);
     this.firstItemInViewport = {
@@ -379,7 +379,7 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  _updateMapOnDataChanged() {
+  _updateMapOnAddData() {
     const { data } = this.props;
     if (this.oldDataLength < data.length) {
       // update rendered maps when data has added more.
@@ -390,6 +390,7 @@ class Masonry extends React.Component<Props> {
       });
       this._updateMapIndex(0, data.length);
       this._updateItemsPosition();
+      this.scrollToSpecialItem(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity)
     }
   }
 
