@@ -62,16 +62,16 @@ class Masonry extends React.Component<Props> {
     this.isFirstLoading = true;
     this.isLoadingTop = false;
     this.isLoadingBottom = false;
+    this.preventLoadBottom = true;
 
-    this.isLoadMoreBottomInFirstLoading = false;
-
-    this.isPac = false;
-    this.pacItem = {};
+    this.isDebut = false;
+    this.itemDebuted = {};
 
     // for add more above
     this.firstItemInViewport = {};
     this.oldDataLength = undefined;
     this.oldFirstItem = undefined;
+    this.oldLastItem = undefined;
 
     this.resizeMap = new Map();
 
@@ -102,12 +102,7 @@ class Masonry extends React.Component<Props> {
 
   init() {
     const { data, cellMeasurerCache: { defaultHeight } } = this.props;
-    if (!!data.length) {
-      this.oldDataLength = data.length;
-    }
-    if (!!data[0]) {
-      this.oldFirstItem = data[0].itemId;
-    }
+    this._updateOldData();
     if (Array.isArray(data)) {
       data.forEach((item) => {
         this._updateItemOnMap(item.itemId, data.indexOf(item), defaultHeight, 0);
@@ -142,15 +137,15 @@ class Masonry extends React.Component<Props> {
 
   onChildrenChangeHeight(itemId: string, newHeight: number) {
     if (this._getHeight(itemId) !== newHeight) {
-      this._updateRenderedItem(itemId, newHeight);
-      this._updateItemsOnChangedHeight(itemId, newHeight);
       const curItem = this.firstItemInViewport.itemId;
       const dis = this.firstItemInViewport.disparity;
-      if (!this.isFirstLoading) {
-        this.pacItem = { curItem, dis };
-        console.log(this.pacItem);
-        this.isPac = true;
+      if (!this.isFirstLoading && !this._isItemRendered(itemId)) {
+        this.itemDebuted = { curItem, dis };
+        console.log(this.itemDebuted);
+        this.isDebut = true;
       }
+      this._updateRenderedItem(itemId, newHeight);
+      this._updateItemsOnChangedHeight(itemId, newHeight);
       this.forceUpdate();
     }
   }
@@ -188,7 +183,8 @@ class Masonry extends React.Component<Props> {
   };
 
   scrollToBottom() {
-    this.masonry.scrollTo(0, this._getEstimatedTotalHeight());
+    this.preventLoadBottom = true;
+    this._scrollToItem(this.oldLastItem);
   };
 
   render() {
@@ -232,7 +228,7 @@ class Masonry extends React.Component<Props> {
       scrollTop >= LOAD_MORE_BOTTOM_TRIGGER_POS &&
       !this.isFirstLoading &&
       !this.isLoadingBottom &&
-      this.isLoadMoreBottomInFirstLoading
+      !this.preventLoadBottom
     ) {
       if (typeof loadMoreBottomFunc === 'function') {
         loadMoreBottomFunc();
@@ -259,11 +255,11 @@ class Masonry extends React.Component<Props> {
       this.isFirstLoading = false;
     }
 
-    if (this.isPac) {
-      console.log(this.isPac);
+    if (this.isDebut) {
+      console.log(this.isDebut);
       console.log(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity);
-      //this._scrollToItem(this.pacItem.curItem, this.pacItem.dis);
-      this.isPac = false;
+      //this._scrollToItem(this.itemDebuted.curItem, this.itemDebuted.dis);
+      this.isDebut = false;
     }
 
     // array item is rendered in the batch.
@@ -362,7 +358,7 @@ class Masonry extends React.Component<Props> {
   }
 
   componentDidUpdate() {
-    const { data } = this.props;
+    const { data, height } = this.props;
     const { scrollTop } = this.state;
 
     if (scrollTop > LOAD_MORE_TOP_TRIGGER_POS && this.isLoadingTop) {
@@ -373,14 +369,14 @@ class Masonry extends React.Component<Props> {
       this.isLoadingBottom = false;
     }
 
-    if (scrollTop < LOAD_MORE_BOTTOM_TRIGGER_POS && !this.isFirstLoading) {
-      this.isLoadMoreBottomInFirstLoading = true;
+    if (scrollTop < this._getEstimatedTotalHeight() - height - 200 && !this.isFirstLoading) {
+      this.preventLoadBottom = false;
     }
 
     // check add or remove item above
     // remove
     if (this.oldDataLength !== data.length) {
-      this.oldDataLength = data.length;
+      this._updateOldData();
       // this._scrollToItem(
       //   this.firstItemInViewport.itemId,
       //   this.firstItemInViewport.disparity
@@ -431,7 +427,7 @@ class Masonry extends React.Component<Props> {
       eventScrollTop
     );
 
-    if (eventScrollTop !== scrollTop) return;
+    if (Math.round(eventScrollTop) !== Math.round(scrollTop)) return;
 
     if (this.state.scrollTop !== scrollTop) {
       this.setState({ scrollTop });
@@ -467,6 +463,19 @@ class Masonry extends React.Component<Props> {
     }
 
     return totalHeight;
+  }
+
+  _updateOldData() {
+    const { data } = this.props;
+    if (!!data.length) {
+      this.oldDataLength = data.length;
+      if (!!data[0]) {
+        this.oldFirstItem = data[0].itemId;
+      }
+      if (!!data[data.length - 1]) {
+        this.oldLastItem = data[data.length - 1].itemId;
+      }
+    }
   }
 
   _updateItemOnMap(itemId: string, itemIndex: number, itemHeight: number, itemPosition: number) {

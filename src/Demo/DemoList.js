@@ -5,7 +5,7 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 
-const DATA_NUMBER = 20;
+const DATA_NUMBER = 5000;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -78,7 +78,6 @@ class DemoList extends React.PureComponent {
   };
 
   scrollToItem() {
-    console.log(this.masonry);
     this.masonry.current.scrollToSpecialItem('id_26');
   };
 
@@ -145,7 +144,6 @@ class DemoList extends React.PureComponent {
                data={this.fakeDataList}
                cellMeasurerCache={this._cache}
                numOfOverscan={3}
-               loadMoreTopFunc={this.loadMoreTop}
                loadMoreBottomFunc={this.loadMoreBottom}
                isStartAtBottom={true}/>
     )
