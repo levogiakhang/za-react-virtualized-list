@@ -5,7 +5,7 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 
-const DATA_NUMBER = 5000;
+const DATA_NUMBER = 30;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -16,12 +16,12 @@ class DemoList extends React.PureComponent {
     };
 
     this.loadTopCount = 2;
-    this.loadBottomCount = 5;
+    this.loadBottomCount = 10;
 
     this.fakeDataList = this._fakeDataList();
     this.itemCount = DATA_NUMBER;
     this._cache = new CellMeasurerCache({
-      defaultHeight: 200,
+      defaultHeight: 150,
     });
 
     this.handleChangeIndex = this.handleChangeIndex.bind(this);
