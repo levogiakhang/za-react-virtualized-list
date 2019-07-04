@@ -56,6 +56,7 @@ class Masonry extends React.Component<Props> {
     this.isFirstLoading = true;
     this.isLoadingTop = false;
     this.isLoadingBottom = false;
+    this.preventLoadTop = true;
     this.preventLoadBottom = true;
 
     this.isDebut = false;
@@ -202,17 +203,12 @@ class Masonry extends React.Component<Props> {
 
     this.estimateTotalHeight = this._getEstimatedTotalHeight();
 
-    if (!this.isResize) {
-      this.resizeMap = {
-        itemId: this.firstItemInViewport.itemId,
-        disparity: this.firstItemInViewport.disparity
-      };
-    }
     // trigger load more top
     if (
       scrollTop < LOAD_MORE_TOP_TRIGGER_POS &&
       !this.isFirstLoading &&
-      !this.isLoadingTop
+      !this.isLoadingTop &&
+      !this.preventLoadTop
     ) {
       if (typeof loadMoreTopFunc === 'function') {
         this.isLoadingTop = true;
@@ -253,6 +249,7 @@ class Masonry extends React.Component<Props> {
     if (isStartAtBottom) {
       this._scrollToBottomAtFirst(itemsInBatch);
     } else {
+      this.preventLoadTop = true;
       this.isFirstLoading = false;
     }
 
@@ -355,8 +352,11 @@ class Masonry extends React.Component<Props> {
     const {data, height} = this.props;
     const {scrollTop} = this.state;
 
-    if (scrollTop > LOAD_MORE_TOP_TRIGGER_POS && this.isLoadingTop) {
-      this.isLoadingTop = false;
+    if (scrollTop > LOAD_MORE_TOP_TRIGGER_POS) {
+      this.preventLoadTop = false;
+      if (this.isLoadingTop) {
+        this.isLoadingTop = false;
+      }
     }
 
     if (scrollTop >= LOAD_MORE_BOTTOM_TRIGGER_POS && this.isLoadingBottom) {
@@ -442,8 +442,8 @@ class Masonry extends React.Component<Props> {
   _onResize() {
     console.log('resize');
     this.isResize = true;
-    console.log(this.resizeMap.itemId, this.resizeMap.disparity);
-    this._scrollToOffset(1000);
+    //console.log(this.resizeMap.itemId, this.resizeMap.disparity);
+    //this._scrollToOffset(1000);
     this.isResize = false;
   }
 
