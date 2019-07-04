@@ -5,7 +5,7 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 
-const DATA_NUMBER = 30;
+const DATA_NUMBER = 10;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -15,7 +15,7 @@ class DemoList extends React.PureComponent {
       moreIndex: 0,
     };
 
-    this.loadTopCount = 2;
+    this.loadTopCount = 10;
     this.loadBottomCount = 10;
 
     this.fakeDataList = this._fakeDataList();
@@ -144,6 +144,7 @@ class DemoList extends React.PureComponent {
                data={this.fakeDataList}
                cellMeasurerCache={this._cache}
                numOfOverscan={3}
+               loadMoreTopFunc={this.loadMoreTop}
                loadMoreBottomFunc={this.loadMoreBottom}
                isStartAtBottom={true}/>
     )

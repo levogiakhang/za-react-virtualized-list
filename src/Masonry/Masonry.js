@@ -71,7 +71,8 @@ class Masonry extends React.Component<Props> {
 
     this.estimateTotalHeight = undefined;
 
-    this.resizeMap = new Map();
+    this.resizeMap = {};
+    this.isResize = false;
 
     // A map stores `index -> itemId`
     this.__indexMap__ = new Map();
@@ -118,7 +119,6 @@ class Masonry extends React.Component<Props> {
   componentDidMount() {
     const {data, height} = this.props;
     this.masonry = this.grandRef.current.firstChild;
-    console.log(this.grandRef)
     window.addEventListener('resize', debounce(this._onResize, DEBOUNCING_TIMER));
     if (this.grandRef !== undefined) {
       this.btnScrollBottomPos.top = this.grandRef.current.offsetTop + height - 50;
@@ -201,13 +201,13 @@ class Masonry extends React.Component<Props> {
     const {scrollTop} = this.state;
 
     this.estimateTotalHeight = this._getEstimatedTotalHeight();
-    if (this.oldTotalHeight !== this.estimateTotalHeight) {
-      this.difTotalHeight = this.oldTotalHeight !== undefined ?
-        this.estimateTotalHeight - this.oldTotalHeight :
-        0;
-      this.oldTotalHeight = this.estimateTotalHeight;
-    }
 
+    if (!this.isResize) {
+      this.resizeMap = {
+        itemId: this.firstItemInViewport.itemId,
+        disparity: this.firstItemInViewport.disparity
+      };
+    }
     // trigger load more top
     if (
       scrollTop < LOAD_MORE_TOP_TRIGGER_POS &&
@@ -215,13 +215,12 @@ class Masonry extends React.Component<Props> {
       !this.isLoadingTop
     ) {
       if (typeof loadMoreTopFunc === 'function') {
+        this.isLoadingTop = true;
         loadMoreTopFunc();
       } else {
         console.warn("loadMoreTopFunc callback is not a function")
       }
       console.log('============load top===============');
-      //this.masonry.scrollTo(0, 1697);
-      this.isLoadingTop = true;
     }
 
     // trigger load more bottom
@@ -233,11 +232,11 @@ class Masonry extends React.Component<Props> {
       !this.preventLoadBottom
     ) {
       if (typeof loadMoreBottomFunc === 'function') {
+        this.isLoadingBottom = true;
         loadMoreBottomFunc();
       } else {
         console.warn("loadMoreBottomFunc callback is not a function")
       }
-      this.isLoadingBottom = true;
     }
 
     this._updateMapOnAddData();
@@ -368,7 +367,7 @@ class Masonry extends React.Component<Props> {
       this.preventLoadBottom = false;
     }
 
-    if (this.isDebut) {
+    if (this.isDebut && !this.isLoadingTop) {
       this.posNeedToScr = this._getPosition(this.firstItemInViewportBeforeDebut.curItem) + this.firstItemInViewportBeforeDebut.dis;
       this.isDebut = false;
       this._scrollToOffset(this.posNeedToScr);
@@ -416,6 +415,7 @@ class Masonry extends React.Component<Props> {
       });
       this._updateMapIndex(0, data.length);
       this._updateItemsPosition();
+      console.log(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity);
       this._scrollToItem(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity)
     }
   }
@@ -440,12 +440,11 @@ class Masonry extends React.Component<Props> {
   };
 
   _onResize() {
-    if (this.resizeMap.size === 0)
-      this.resizeMap.set('resize', {
-        itemId: this.firstItemInViewport.itemId,
-        disparity: this.firstItemInViewport.disparity
-      });
-    console.log('resized');
+    console.log('resize');
+    this.isResize = true;
+    console.log(this.resizeMap.itemId, this.resizeMap.disparity);
+    this._scrollToOffset(1000);
+    this.isResize = false;
   }
 
   _scrollToOffset(top) {
