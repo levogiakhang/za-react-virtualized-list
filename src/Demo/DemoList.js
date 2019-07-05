@@ -4,6 +4,7 @@ import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
+import MasonryViewModel from "../ViewModel/MasonryViewModel";
 
 const DATA_NUMBER = 10;
 
@@ -33,6 +34,9 @@ class DemoList extends React.PureComponent {
 
   componentDidMount(): void {
     this.masonry = React.createRef();
+    this.viewModel = new MasonryViewModel({data: this.fakeDataList, masonry: this.masonry, cellCache: this._cache});
+    // this.viewModel.onLoadMoreTop(this.loadMoreTop);
+    // this.viewModel.onLoadMoreBottom(this.loadMoreBottom);
     this.setState({ isLoading: false });
   }
 
@@ -70,22 +74,14 @@ class DemoList extends React.PureComponent {
     const { moreIndex } = this.state;
     const item = this._randomItem(this.itemCount);
     this.itemCount++;
-    if (!this._isIdAlready(item.itemId) &&
-      this._isInRange(moreIndex, 0, this.fakeDataList.length )) {
-      this.fakeDataList.splice(moreIndex, 0, item);
-      this.forceUpdate();
+    if (this._isInRange(moreIndex, 0, this.fakeDataList.length )) {
+      this.viewModel.onAddItem(moreIndex, item);
     }
   };
 
   scrollToItem() {
-    this.masonry.current.scrollToSpecialItem('id_26');
-  };
-
-  _isIdAlready = function (id: string): boolean {
-    for (let i = 0; i <= this.fakeDataList.length - 1; i++) {
-      if (this.fakeDataList[i].itemId === id) return true;
-    }
-    return false;
+    this.viewModel.onUpdateItem('id_8', {itemId: 'id_8', userName: 'Khang'})
+    //this.masonry.current.scrollToSpecialItem('id_26');
   };
 
   _isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
@@ -141,11 +137,8 @@ class DemoList extends React.PureComponent {
                ref={this.masonry}
                style={{ marginTop: "10px", borderRadius: '5px' }}
                id={'Masonry'}
-               data={this.fakeDataList}
-               cellMeasurerCache={this._cache}
+               viewModel={this.viewModel}
                numOfOverscan={3}
-               loadMoreTopFunc={this.loadMoreTop}
-               loadMoreBottomFunc={this.loadMoreBottom}
                isStartAtBottom={true}/>
     )
   };
