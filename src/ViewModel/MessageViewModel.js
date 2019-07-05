@@ -1,8 +1,5 @@
-import ViewModelBase from "./ViewModelBase";
-
-class MessageViewModel extends ViewModelBase {
+class MessageViewModel {
   constructor() {
-    super();
   }
 
   onRemove(itemId, removeCallback) {
