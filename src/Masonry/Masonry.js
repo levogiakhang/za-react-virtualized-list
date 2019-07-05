@@ -5,7 +5,7 @@ import './Masonry.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
 import Message from "../Message/Message";
-import {DEBOUNCING_TIMER, DEFAULT_HEIGHT, NOT_FOUND, OUT_OF_RANGE} from "../utils/value";
+import { DEBOUNCING_TIMER, DEFAULT_HEIGHT, NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
 import debounce from "../utils/debounce";
 import CellMeasurerModel from "../Model/CellMeasurerModel";
 import MessageModel from "../Model/MessageModel";
@@ -70,7 +70,7 @@ class Masonry extends React.Component<Props> {
     this.oldLastItem = undefined;
     this.oldLastItemBeforeDebut = undefined;
 
-    this.estimateTotalHeight = undefined;
+    this.estimateTotalHeight = 0;
 
     this.resizeMap = {};
     this.isResize = false;
@@ -144,6 +144,7 @@ class Masonry extends React.Component<Props> {
       }
       this._updateRenderedItem(itemId, newHeight);
       this._updateItemsOnChangedHeight(itemId, newHeight);
+      this.estimateTotalHeight = this._getEstimatedTotalHeight();
       this.setState(this.state); // instead of this.forceUpdate();
     }
   }
@@ -167,6 +168,8 @@ class Masonry extends React.Component<Props> {
     this.__itemsMap__.delete(itemId);
 
     this.__renderedItems__.delete(itemId);
+
+    this.estimateTotalHeight = this._getEstimatedTotalHeight();
 
     this.forceUpdate();
   }
@@ -200,8 +203,6 @@ class Masonry extends React.Component<Props> {
     } = this.props;
 
     const {scrollTop} = this.state;
-
-    this.estimateTotalHeight = this._getEstimatedTotalHeight();
 
     // trigger load more top
     if (
