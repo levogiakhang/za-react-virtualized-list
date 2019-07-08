@@ -145,7 +145,7 @@ class Masonry extends React.Component<Props> {
     const data = this.viewModel.getData;
     const itemIndex = this.itemCache.getIndex(itemId);
 
-    if(itemIndex !== NOT_FOUND) {
+    if (itemIndex !== NOT_FOUND) {
       // remove an item means this item has new height equals 0
       this._updateItemsOnChangedHeight(itemId, 0);
 
@@ -498,7 +498,7 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  /*
+  /**
    *  Update all items' position
    */
   _updateItemsPosition() {
@@ -515,7 +515,7 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  /*
+  /**
    *  Update other items' position below the item that changed height.
    */
   _updateItemsOnChangedHeight(itemId: string, newHeight: number) {
@@ -526,7 +526,7 @@ class Masonry extends React.Component<Props> {
     this._updateItemsPositionFromSpecifiedItem(itemId);
   }
 
-  /*
+  /**
    *  Calculate items' position from specified item to end the data list => reduces number of calculation
    */
   _updateItemsPositionFromSpecifiedItem(itemId: string) {
@@ -553,14 +553,14 @@ class Masonry extends React.Component<Props> {
   }
 
 
-  /*
- *  Get itemId of a item in _positionMaps by position.
- *  @param:
- *        + positionTop (number): position top where wanna get item in this.
- *  @return:
- *        + key (string): itemId.
- *        + OUT_OF_RANGE ('out of range'): if position param is greater than total height.
- */
+  /**
+   *  Get itemId of a item in _positionMaps by position.
+   *
+   *  @param {number} positionTop - Where wanna get item in this.
+   *
+   *  @return {string} - itemId.
+   *  @return {number} - OUT_OF_RANGE ('out of range'): if position param is greater than total height.
+   */
   _getItemIdFromPosition(positionTop: number): string {
     const data = this.viewModel.getData;
     if (!!data.length) {
@@ -576,13 +576,13 @@ class Masonry extends React.Component<Props> {
   }
 
 
-  /*
+  /**
    *  Get itemId from index.
-   *  @param:
-   *        + index (number): index of item.
-   *  @return:
-   *        + a string represents for itemId
-   *        + OUT_OF_RANGE (-3): if index out of range of data.
+   *
+   *  @param {number} index - Index of item.
+   *
+   *  @return {string} - itemId.
+   *  @return {number} - OUT_OF_RANGE: if index out of range of data.
    */
   _getItemIdFromIndex(index: number): string {
     const data = this.viewModel.getData;
@@ -592,11 +592,12 @@ class Masonry extends React.Component<Props> {
     }
   }
 
-  /*
-   *  Return an array that stores itemId of items rendering in batch
-   *  @param:
-   *      scrollTop: offset top of Masonry
-   *  @return: an Array<string>
+  /**
+   *  Return an array that stores itemId of items rendering in batch.
+   *
+   *  @param {number} scrollTop - Offset top of Masonry.
+   *
+   *  @return: {Array<string>} - Can be empty.
    */
   _getItemsInBatch(scrollTop: number): Array<string> {
     const data = this.viewModel.getData;
@@ -618,12 +619,11 @@ class Masonry extends React.Component<Props> {
 
   /*
    *  Return an array stores all items rendering in viewport.
-   *  @params:
-   *        + scrollTop (number): this masonry position.
-   *        + height (number): viewport's height;
-   *  @return:
-   *        + empty: if scrollTop is out of range or there isn't any items in viewport.
-   *        + (Array<string>): stores all items' id in viewport.
+   *
+   *  @params {number} scrollTop - This masonry position.
+   *  @params {number} height - Viewport's height
+   *
+   *  @return {Array<string>} - Stores all items' id in viewport. Can be empty.
    */
   _getItemsInViewport(scrollTop: number, viewportHeight: number): Array<string> {
     const data = this.viewModel.getData;
