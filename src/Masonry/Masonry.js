@@ -105,16 +105,16 @@ class Masonry extends React.Component<Props> {
     if (defaultHeight === undefined) {
       this.cache = new CellMeasurerCache({defaultHeight: DEFAULT_HEIGHT});
     }
-    this.grandRef = React.createRef();
+    this.parentRef = React.createRef();
   }
 
   componentDidMount() {
     const data = this.viewModel.getData;
     const {height} = this.props;
-    this.masonry = this.grandRef.current.firstChild;
+    this.masonry = this.parentRef.current.firstChild;
     window.addEventListener('resize', debounce(this._onResize, DEBOUNCING_TIMER));
-    if (this.grandRef !== undefined) {
-      this.btnScrollBottomPos.top = this.grandRef.current.offsetTop + height - 50;
+    if (this.parentRef !== undefined) {
+      this.btnScrollBottomPos.top = this.parentRef.current.offsetTop + height - 50;
     }
     console.log(data);
     this._updateItemsPosition();
@@ -276,7 +276,8 @@ class Masonry extends React.Component<Props> {
     }
 
     return (
-      <div ref={this.grandRef}>
+      <div className={'masonry-parent'}
+           ref={this.parentRef}>
         <div className={className}
              id={id}
              onScroll={this._onScroll}
