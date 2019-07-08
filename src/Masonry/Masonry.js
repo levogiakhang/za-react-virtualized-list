@@ -620,8 +620,8 @@ class Masonry extends React.Component<Props> {
   /**
    *  Return an array stores all items rendering in viewport.
    *
-   *  @params {number} scrollTop - This masonry position.
-   *  @params {number} height - Viewport's height
+   *  @param {number} scrollTop - This masonry position.
+   *  @param {number} viewportHeight
    *
    *  @return {Array<string>} - Stores all items' id in viewport. Can be empty.
    */
