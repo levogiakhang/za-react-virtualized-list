@@ -57,7 +57,7 @@ button {
 
 .control-view {
   margin-left: 2rem;
-  display: flex;
+  display: block;
   padding-top: 100px;
 }
 

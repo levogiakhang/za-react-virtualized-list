@@ -9,6 +9,7 @@ class MasonryViewModel {
     this.loadMoreTopCallback = undefined;
     this.loadMoreBottomCallback = undefined;
 
+    this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
     this.scrollToTop = this.scrollToTop.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
@@ -25,6 +26,12 @@ class MasonryViewModel {
   onLoadMoreBottom(fn) {
     if (typeof fn === 'function') {
       this.loadMoreBottomCallback = fn;
+    }
+  }
+
+  scrollToSpecialItem(itemId) {
+    if (this.masonry) {
+      this.masonry.current.scrollToSpecialItem(itemId);
     }
   }
 
@@ -49,7 +56,7 @@ class MasonryViewModel {
 
   onAddItem(index, item) {
     if (this.masonry && !this.isIdAlready(item.itemId)) {
-      this.data.splice(index, 0, item);
+      this.masonry.current.onAddItem(index, item);
       this.masonry.current.reRender();
     }
   }
@@ -71,6 +78,30 @@ class MasonryViewModel {
       }) !== undefined
     }
   };
+
+  addTop(item) {
+    if (Array.isArray(this.data)) {
+      this.data.unshift(item);
+    }
+  }
+
+  addBottom(item) {
+    if (Array.isArray(this.data)) {
+      this.data.push(item);
+    }
+  }
+
+  insertItem(index: number, item) {
+    if (Array.isArray(this.data)) {
+      this.data.splice(index, 0, item);
+    }
+  }
+
+  deleteItem(index: number, deleteCount: number = 1) {
+    if (Array.isArray(this.data)) {
+      this.data.splice(index, deleteCount);
+    }
+  }
 
   // region GET-SET
   get getData() {

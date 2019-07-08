@@ -53,6 +53,7 @@ class Masonry extends React.Component<Props> {
     this.isLoadingBottom = false;
     this.preventLoadTop = true;
     this.preventLoadBottom = true;
+    this.firstItemInViewportBeforeLoadTop = {};
 
     this.isDebut = false;
     this.flat = undefined;
@@ -141,6 +142,11 @@ class Masonry extends React.Component<Props> {
     }
   }
 
+  onAddItem(index, item) {
+    this.viewModel.insertItem(index, item);
+    this.estimateTotalHeight = this._getEstimatedTotalHeight();
+  }
+
   onRemoveItem(itemId: string) {
     const data = this.viewModel.getData;
     const itemIndex = this.itemCache.getIndex(itemId);
@@ -150,7 +156,7 @@ class Masonry extends React.Component<Props> {
       this._updateItemsOnChangedHeight(itemId, 0);
 
       // Remove item on data list, rendered maps and position maps
-      data.splice(itemIndex, 1);
+      this.viewModel.deleteItem(itemIndex);
 
       // Update index to id map after remove an item.
       this._updateMapIndex(itemIndex - 1, data.length);
@@ -161,6 +167,7 @@ class Masonry extends React.Component<Props> {
       this.itemCache.deleteItem(itemId);
 
       this.estimateTotalHeight = this._getEstimatedTotalHeight();
+      this._updateOldData();
     }
   }
 
@@ -203,6 +210,12 @@ class Masonry extends React.Component<Props> {
     const {scrollTop} = this.state;
     const removeCallback = this.viewModel.onRemoveItem;
 
+    const curItem = this._getItemIdFromPosition(scrollTop);
+    this.firstItemInViewport = {
+      itemId: curItem,
+      disparity: scrollTop - this.itemCache.getPosition(curItem)
+    };
+
     // trigger load more top
     if (
       scrollTop < LOAD_MORE_TOP_TRIGGER_POS &&
@@ -212,6 +225,10 @@ class Masonry extends React.Component<Props> {
     ) {
       if (typeof this.viewModel.getLoadMoreTopCallBack === 'function') {
         this.isLoadingTop = true;
+        this.firstItemInViewportBeforeLoadTop = {
+          itemId: curItem,
+          disparity: scrollTop - this.itemCache.getPosition(curItem)
+        };
         this.viewModel.getLoadMoreTopCallBack();
       } else {
         console.warn("loadMoreTopFunc callback is not a function")
@@ -236,12 +253,6 @@ class Masonry extends React.Component<Props> {
     }
 
     this._updateMapOnAddData();
-
-    const curItem = this._getItemIdFromPosition(scrollTop);
-    this.firstItemInViewport = {
-      itemId: curItem,
-      disparity: scrollTop - this.itemCache.getPosition(curItem)
-    };
 
     // number of items in viewport + overscan top + overscan bottom.
     const itemsInBatch = this._getItemsInBatch(scrollTop);
@@ -340,11 +351,14 @@ class Masonry extends React.Component<Props> {
     // check add or remove item above
     // remove
     if (this.oldDataLength !== data.length) {
+      if(this.oldDataLength < data.length && this.isLoadingTop && !this.isDebut) {
+        console.log(this.firstItemInViewportBeforeLoadTop);
+        this._scrollToItem(
+          this.firstItemInViewportBeforeLoadTop.itemId,
+          this.firstItemInViewportBeforeLoadTop.disparity
+        );
+      }
       this._updateOldData();
-      // this._scrollToItem(
-      //   this.firstItemInViewport.itemId,
-      //   this.firstItemInViewport.disparity
-      // );
     }
   }
 
