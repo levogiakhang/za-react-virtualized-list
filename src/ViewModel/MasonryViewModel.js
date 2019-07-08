@@ -9,6 +9,8 @@ class MasonryViewModel {
     this.loadMoreTopCallback = undefined;
     this.loadMoreBottomCallback = undefined;
 
+    this.scrollToTop = this.scrollToTop.bind(this);
+    this.scrollToBottom = this.scrollToBottom.bind(this);
     this.onRemoveItem = this.onRemoveItem.bind(this);
     this.onAddItem = this.onAddItem.bind(this);
     this.onUpdateItem = this.onUpdateItem.bind(this);
@@ -23,6 +25,18 @@ class MasonryViewModel {
   onLoadMoreBottom(fn) {
     if (typeof fn === 'function') {
       this.loadMoreBottomCallback = fn;
+    }
+  }
+
+  scrollToTop() {
+    if (this.masonry) {
+      this.masonry.current.scrollToTop();
+    }
+  }
+
+  scrollToBottom() {
+    if (this.masonry) {
+      this.masonry.current.scrollToBottom();
     }
   }
 

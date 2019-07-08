@@ -85,6 +85,7 @@ class Masonry extends React.Component<Props> {
     this.onRemoveItem = this.onRemoveItem.bind(this);
     this.scrollToSpecialItem = this.scrollToSpecialItem.bind(this);
     this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
+    this.scrollToTop = this.scrollToTop.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
     this.init();
   }
@@ -170,6 +171,11 @@ class Masonry extends React.Component<Props> {
       // waiting for rendering already
       this._scrollToItem(itemId, 0);
     }
+  };
+
+  scrollToTop() {
+    this.preventLoadTop = true;
+    this._scrollToItem(this.oldFirstItem);
   };
 
   scrollToBottom() {
