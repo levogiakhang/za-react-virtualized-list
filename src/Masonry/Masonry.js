@@ -307,18 +307,6 @@ class Masonry extends React.Component<Props> {
             {children}
           </div>
         </div>
-        {
-          scrollTop <= this.estimateTotalHeight - height - 200 ? <button
-            className={'btn-scroll-bottom'}
-            onClick={this.scrollToBottom}
-            style={{
-              position: 'absolute',
-              right: this.btnScrollBottomPos.right,
-              top: this.btnScrollBottomPos.top
-            }}>
-            <i className={'down'}/>
-          </button> : null
-        }
       </div>
     );
   }
