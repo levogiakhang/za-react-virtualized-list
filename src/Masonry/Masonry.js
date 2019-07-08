@@ -597,7 +597,7 @@ class Masonry extends React.Component<Props> {
    *
    *  @param {number} scrollTop - Offset top of Masonry.
    *
-   *  @return: {Array<string>} - Can be empty.
+   *  @return {Array<string>} - Can be empty.
    */
   _getItemsInBatch(scrollTop: number): Array<string> {
     const data = this.viewModel.getData;
@@ -617,7 +617,7 @@ class Masonry extends React.Component<Props> {
     return results;
   }
 
-  /*
+  /**
    *  Return an array stores all items rendering in viewport.
    *
    *  @params {number} scrollTop - This masonry position.
