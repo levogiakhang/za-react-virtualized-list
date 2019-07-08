@@ -8,6 +8,10 @@ class MasonryViewModel {
     this.cellCache = cellCache;
     this.loadMoreTopCallback = undefined;
     this.loadMoreBottomCallback = undefined;
+
+    this.onRemoveItem = this.onRemoveItem.bind(this);
+    this.onAddItem = this.onAddItem.bind(this);
+    this.onUpdateItem = this.onUpdateItem.bind(this);
   }
 
   onLoadMoreTop(fn) {

@@ -4,11 +4,9 @@ import React from 'react';
 import './Masonry.css';
 import CellMeasurerCache from "../CellMeasurer/CellMeasurerCache";
 import CellMeasurer from "../CellMeasurer/CellMeasurer";
-import Message from "../Message/Message";
 import { DEBOUNCING_TIMER, DEFAULT_HEIGHT, NOT_FOUND, OUT_OF_RANGE } from "../utils/value";
 import debounce from "../utils/debounce";
 import CellMeasurerModel from "../Model/CellMeasurerModel";
-import MessageModel from "../Model/MessageModel";
 import ItemCache from "../utils/ItemCache";
 
 type Props = {
@@ -18,6 +16,7 @@ type Props = {
   height: number,
   numOfOverscan: number,
   viewModel: any,
+  cellRenderer: any,
   isStartAtBottom?: boolean,
   hideScrollToBottomBtn?: boolean
 };
@@ -189,12 +188,14 @@ class Masonry extends React.Component<Props> {
       height,
       style,
       isScrolling,
-      isStartAtBottom
+      isStartAtBottom,
+      cellRenderer
     } = this.props;
 
     const data = this.viewModel.getData;
     const cellCache = this.viewModel.getCellCache;
     const {scrollTop} = this.state;
+    const removeCallback = this.viewModel.onRemoveItem;
 
     // trigger load more top
     if (
@@ -250,47 +251,21 @@ class Masonry extends React.Component<Props> {
     const children = [];
     for (let i = 0; i <= itemsInBatch.length - 1; i++) {
       const index = this.itemCache.getIndex(itemsInBatch[i]);
-      switch (typeof data[index]) {
-        case "object": {
-          const mess = new MessageModel({
-            id: data[index].itemId,
-            userAvatarUrl: data[index].avatar,
-            userName: data[index].userName,
-            messageContent: data[index].msgContent,
-            sentTime: data[index].timestamp,
-            isMine: false,
-            onRemoveItem: this.onRemoveItem,
-          });
-
-          const cellMeasurer = new CellMeasurerModel({
-            id: data[index].itemId,
-            cache: cellCache,
-            position: {top: this.itemCache.getPosition(itemsInBatch[i]), left: 0},
-          });
-
-          children.push(
-            <CellMeasurer id={cellMeasurer.getItemId()}
-                          key={cellMeasurer.getItemId()}
-                          cache={cellMeasurer.getCache}
-                          onChangedHeight={this.onChildrenChangeHeight}
-                          position={cellMeasurer.getPosition}>
-              <Message id={mess.getItemId()}
-                       key={mess.getItemId()}
-                       index={index}
-                       userAvatarUrl={mess.getUserAvatarUrl}
-                       userName={mess.getUserName}
-                       messageContent={mess.getMessageContent}
-                       sentTime={mess.getSentTime}
-                       isMine={mess.isMine}
-                       onRemoveItem={mess.onRemoveCallBack}/>
-            </CellMeasurer>
-          );
-          break;
-        }
-
-        default: {
-          break;
-        }
+      if (!!data[index]) {
+        const cellMeasurer = new CellMeasurerModel({
+          id: data[index].itemId,
+          cache: cellCache,
+          position: {top: this.itemCache.getPosition(itemsInBatch[i]), left: 0},
+        });
+        children.push(
+          <CellMeasurer id={cellMeasurer.getItemId()}
+                        key={cellMeasurer.getItemId()}
+                        cache={cellMeasurer.getCache}
+                        onChangedHeight={this.onChildrenChangeHeight}
+                        position={cellMeasurer.getPosition}>
+            {typeof cellRenderer === 'function' ? cellRenderer({index, data, removeCallback}) : null}
+          </CellMeasurer>
+        );
       }
     }
 
@@ -647,7 +622,7 @@ class Masonry extends React.Component<Props> {
         let nextItemId = this._getItemIdFromIndex(itemIndex + i);
         let nextItemHeight = this.itemCache.getHeight(nextItemId);
 
-        while (remainingViewHeight > nextItemHeight) {
+        while (remainingViewHeight > nextItemHeight && nextItemHeight !== 0) {
           remainingViewHeight -= nextItemHeight;
           results.push(nextItemId);
           i++;

@@ -5,6 +5,8 @@ import Masonry from "../Masonry/Masonry";
 import { fakeData } from "../utils/FakeData";
 import { ListMessageExample } from "../utils/ListMessageExample";
 import MasonryViewModel from "../ViewModel/MasonryViewModel";
+import MessageModel from "../Model/MessageModel";
+import Message from "../Message/Message";
 
 const DATA_NUMBER = 10;
 
@@ -30,6 +32,7 @@ class DemoList extends React.PureComponent {
     this.loadMoreBottom = this.loadMoreBottom.bind(this);
     this.onAddItem = this.onAddItem.bind(this);
     this.scrollToItem = this.scrollToItem.bind(this);
+    DemoList.cellRenderer = DemoList.cellRenderer.bind(this);
   }
 
   componentDidMount(): void {
@@ -37,7 +40,7 @@ class DemoList extends React.PureComponent {
     this.viewModel = new MasonryViewModel({data: this.fakeDataList, masonry: this.masonry, cellCache: this._cache});
     // this.viewModel.onLoadMoreTop(this.loadMoreTop);
     // this.viewModel.onLoadMoreBottom(this.loadMoreBottom);
-    this.setState({ isLoading: false });
+    this.setState({isLoading: false});
   }
 
   _fakeDataList() {
@@ -50,7 +53,7 @@ class DemoList extends React.PureComponent {
 
   handleChangeIndex(e) {
     if (this._isInRange(e.target.value, 0, this.fakeDataList.length)) {
-      this.setState({ moreIndex: e.target.value });
+      this.setState({moreIndex: e.target.value});
     } else {
       alert('OUT OF RANGE');
     }
@@ -71,10 +74,10 @@ class DemoList extends React.PureComponent {
   }
 
   onAddItem() {
-    const { moreIndex } = this.state;
+    const {moreIndex} = this.state;
     const item = this._randomItem(this.itemCount);
     this.itemCount++;
-    if (this._isInRange(moreIndex, 0, this.fakeDataList.length )) {
+    if (this._isInRange(moreIndex, 0, this.fakeDataList.length)) {
       this.viewModel.onAddItem(moreIndex, item);
     }
   };
@@ -84,12 +87,35 @@ class DemoList extends React.PureComponent {
     //this.masonry.current.scrollToSpecialItem('id_26');
   };
 
+  static cellRenderer({index, data, removeCallback}) {
+    const mess = new MessageModel({
+      id: data[index].itemId,
+      userAvatarUrl: data[index].avatar,
+      userName: data[index].userName,
+      messageContent: data[index].msgContent,
+      sentTime: data[index].timestamp,
+      isMine: false,
+      onRemoveItem: removeCallback,
+    });
+    return (
+      <Message id={mess.getItemId()}
+               key={mess.getItemId()}
+               index={index}
+               userAvatarUrl={mess.getUserAvatarUrl}
+               userName={mess.getUserName}
+               messageContent={mess.getMessageContent}
+               sentTime={mess.getSentTime}
+               isMine={mess.isMine}
+               onRemoveItem={mess.onRemoveCallBack}/>
+    );
+  }
+
   _isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
     return index >= startIndex && index <= endIndex;
   };
 
   _randomItem = function (index): Object {
-    const result = { ...fakeData };
+    const result = {...fakeData};
     result.itemId = result.itemId + index;
     result.userName = result.userName + index;
     result.msgContent = ListMessageExample[Math.floor(Math.random() * 20)];
@@ -111,7 +137,7 @@ class DemoList extends React.PureComponent {
   };
 
   _renderControlView = () => {
-    const { moreIndex } = this.state;
+    const {moreIndex} = this.state;
     return (
       <div className={'control-view'}>
         <input className={'input-demo input-index'}
@@ -135,16 +161,17 @@ class DemoList extends React.PureComponent {
     return (
       <Masonry height={500}
                ref={this.masonry}
-               style={{ marginTop: "10px", borderRadius: '5px' }}
+               style={{marginTop: "10px", borderRadius: '5px'}}
                id={'Masonry'}
                viewModel={this.viewModel}
+               cellRenderer={DemoList.cellRenderer}
                numOfOverscan={3}
                isStartAtBottom={true}/>
     )
   };
 
   render() {
-    const { isLoading } = this.state;
+    const {isLoading} = this.state;
     return (
       isLoading ?
         <div>Loading...</div>
