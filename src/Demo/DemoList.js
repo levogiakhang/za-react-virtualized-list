@@ -22,6 +22,7 @@ class DemoList extends React.PureComponent {
     this.loadBottomCount = 10;
 
     this.fakeDataList = this._fakeDataList();
+    this.fakeDataListTwo = this._fakeDataList();
     this.itemCount = DATA_NUMBER;
     this._cache = new CellMeasurerCache({
       defaultHeight: 150,
@@ -37,7 +38,9 @@ class DemoList extends React.PureComponent {
 
   componentDidMount(): void {
     this.masonry = React.createRef();
+    this.masonryTwo = React.createRef();
     this.viewModel = new MasonryViewModel({data: this.fakeDataList, masonry: this.masonry, cellCache: this._cache});
+    this.viewModelTwo = new MasonryViewModel({data: this.fakeDataListTwo, masonry: this.masonryTwo, cellCache: this._cache});
     // this.viewModel.onLoadMoreTop(this.loadMoreTop);
     // this.viewModel.onLoadMoreBottom(this.loadMoreBottom);
     this.setState({isLoading: false});
@@ -83,7 +86,8 @@ class DemoList extends React.PureComponent {
   };
 
   scrollToItem() {
-    this.viewModel.onUpdateItem('id_8', {itemId: 'id_8', userName: 'Khang'})
+    this.viewModel.scrollToTop();
+    //this.viewModel.onUpdateItem('id_8', {itemId: 'id_8', userName: 'Khang'})
     //this.masonry.current.scrollToSpecialItem('id_26');
   };
 
@@ -170,6 +174,19 @@ class DemoList extends React.PureComponent {
     )
   };
 
+  _renderListTwo = () => {
+    return (
+      <Masonry height={500}
+               ref={this.masonryTwo}
+               style={{marginTop: "10px", borderRadius: '5px'}}
+               id={'MasonryTwo'}
+               viewModel={this.viewModelTwo}
+               cellRenderer={DemoList.cellRenderer}
+               numOfOverscan={3}
+               isStartAtBottom={true}/>
+    )
+  };
+
   render() {
     const {isLoading} = this.state;
     return (
@@ -178,7 +195,10 @@ class DemoList extends React.PureComponent {
         :
         <div className={'container'}>
           {this._renderControlView()}
+          <div style={{display: 'flex', justifyContent: 'space-around'}}>
           {this._renderList()}
+          {this._renderListTwo()}
+          </div>
         </div>
     );
   }
