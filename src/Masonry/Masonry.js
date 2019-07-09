@@ -67,6 +67,7 @@ class Masonry extends React.Component<Props> {
     this.oldLastItemBeforeDebut = undefined;
 
     this.estimateTotalHeight = 0;
+    this.oldEstimateTotalHeight = 0;
 
     this.resizeMap = {};
     this.isResize = false;
@@ -75,6 +76,7 @@ class Masonry extends React.Component<Props> {
 
     // Represents this element.
     this.masonry = undefined;
+    this.parentRef = React.createRef();
     this.btnScrollBottomPos = {
       top: 0,
       right: 20,
@@ -88,10 +90,10 @@ class Masonry extends React.Component<Props> {
     this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
     this.scrollToTop = this.scrollToTop.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
-    this.init();
+    this.initialize();
   }
 
-  init() {
+  initialize() {
     const data = this.viewModel.getData;
     const defaultHeight = this.viewModel.getCellCache.defaultHeight;
     this._updateOldData();
@@ -106,7 +108,14 @@ class Masonry extends React.Component<Props> {
     if (defaultHeight === undefined) {
       this.cache = new CellMeasurerCache({defaultHeight: DEFAULT_HEIGHT});
     }
-    this.parentRef = React.createRef();
+    this.estimateTotalHeight = this._getEstimatedTotalHeight();
+    this.oldEstimateTotalHeight = this.estimateTotalHeight;
+  }
+
+  clear() {
+    if(this.itemCache) {
+      this.itemCache.clear();
+    }
   }
 
   componentDidMount() {
@@ -126,7 +135,7 @@ class Masonry extends React.Component<Props> {
     window.removeEventListener('resize', this._onResize);
   }
 
-  onChildrenChangeHeight(itemId: string, newHeight: number) {
+  onChildrenChangeHeight(itemId: string, newHeight: number, oldHeight: number) {
     if (this.itemCache.getHeight(itemId) !== newHeight) {
       const curItem = this.firstItemInViewport.itemId;
       const dis = this.firstItemInViewport.disparity;
@@ -137,7 +146,7 @@ class Masonry extends React.Component<Props> {
       }
       this.itemCache.updateRenderedItem(itemId, newHeight);
       this._updateItemsOnChangedHeight(itemId, newHeight);
-      this.estimateTotalHeight = this._getEstimatedTotalHeight();
+      this._updateEstimatedHeight(newHeight - oldHeight);
       this.setState(this.state); // instead of this.forceUpdate();
     }
   }
@@ -152,9 +161,10 @@ class Masonry extends React.Component<Props> {
     const itemIndex = this.itemCache.getIndex(itemId);
 
     if (itemIndex !== NOT_FOUND) {
+      const itemHeight = this.itemCache.getRealHeight(itemId);
+
       // remove an item means this item has new height equals 0
       this._updateItemsOnChangedHeight(itemId, 0);
-
       // Remove item on data list, rendered maps and position maps
       this.viewModel.deleteItem(itemIndex);
 
@@ -166,7 +176,7 @@ class Masonry extends React.Component<Props> {
       this._updateItemIndex(itemIndex);
       this.itemCache.deleteItem(itemId);
 
-      this.estimateTotalHeight = this._getEstimatedTotalHeight();
+      this._updateEstimatedHeight(-itemHeight);
       this._updateOldData();
     }
   }
@@ -447,6 +457,11 @@ class Masonry extends React.Component<Props> {
     return totalHeight;
   }
 
+  _updateEstimatedHeight(difference: number) {
+    this.estimateTotalHeight = this.oldEstimateTotalHeight + difference;
+    this.oldEstimateTotalHeight = this.estimateTotalHeight;
+  }
+
   _updateOldData() {
     const data = this.viewModel.getData;
     if (!!data.length) {
@@ -548,7 +563,7 @@ class Masonry extends React.Component<Props> {
   _getItemIdFromPosition(positionTop: number): string {
     const data = this.viewModel.getData;
     if (!!data.length) {
-      if (positionTop >= this._getEstimatedTotalHeight()) return this._getItemIdFromIndex(data.length - 1);
+      if (positionTop >= this.estimateTotalHeight) return this._getItemIdFromIndex(data.length - 1);
 
       for (let key of this.itemCache.getItemsMap.keys()) {
         if (positionTop >= this.itemCache.getPosition(key) &&

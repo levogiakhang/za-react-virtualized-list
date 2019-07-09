@@ -1,4 +1,3 @@
-import ItemCache from "../utils/ItemCache";
 import { NOT_FOUND } from "../utils/value";
 
 class MasonryViewModel {
@@ -103,6 +102,15 @@ class MasonryViewModel {
     }
   }
 
+  updateData(data) {
+    if(this.masonry) {
+      this.masonry.current.clear();
+      this.setData(data);
+      this.masonry.current.initialize();
+      this.masonry.current.reRender();
+    }
+  }
+
   // region GET-SET
   get getData() {
     return this.data;
@@ -124,15 +132,16 @@ class MasonryViewModel {
     return this.loadMoreBottomCallback;
   }
 
-  set setData(data) {
+  setData(data) {
+    this.data = [];
     this.data = data;
   }
 
-  set setMasonry(masonry) {
+  setMasonry(masonry) {
     this.masonry = masonry;
   }
 
-  set setCellCache(cache) {
+  setCellCache(cache) {
     this.cellCache = cache;
   }
 

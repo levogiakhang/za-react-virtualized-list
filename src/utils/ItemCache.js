@@ -11,6 +11,12 @@ class ItemCache {
     this.__renderedItems__ = new Map();
   }
 
+  clear() {
+    this.__indexMap__.clear();
+    this.__itemsMap__.clear();
+    this.__renderedItems__.clear();
+  }
+
   hasItem(itemId: string): boolean {
     return this.__itemsMap__.has(itemId);
   }

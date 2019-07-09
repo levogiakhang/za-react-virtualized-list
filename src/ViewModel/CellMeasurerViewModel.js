@@ -10,18 +10,15 @@ class CellMeasurerViewModel {
 
   onChildrenChangeHeight() {
     if (this._isChangedHeight()) {
-      this.model.onChangedHeight(this.model.id, this._newHeight);
+      const oldHeightCache = this._oldHeight;
+      this._oldHeight = this._newHeight;
+      this.model.onChangedHeight(this.model.id, this._newHeight, oldHeightCache);
     }
   };
 
   _isChangedHeight() {
     this._newHeight = this._getCellHeight();
-    if (this._oldHeight !== this._newHeight) {
-      //console.log('id: ' + this.props.id + " old: " + this._oldHeight + ' new: ' + this._newHeight  );
-      this._oldHeight = this._newHeight;
-      return true;
-    }
-    return false;
+    return this._oldHeight !== this._newHeight;
   }
 
   _getCellHeight() {
