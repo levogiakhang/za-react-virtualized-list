@@ -8,6 +8,7 @@ class CellMeasurerModel implements ModelBase{
     this.id = props.id;
     this.cache = props.cache;
     this.position = props.position;
+    this.isVirtualized = props.isVirtualized;
     this.onChangedHeight = props.onChangedHeight;
   }
 
@@ -17,6 +18,10 @@ class CellMeasurerModel implements ModelBase{
 
   get getPosition(): Position {
     return this.position;
+  }
+
+  get getIsVirtualized(): boolean {
+    return this.isVirtualized;
   }
 
   get getCache(): CellMeasurerCache {

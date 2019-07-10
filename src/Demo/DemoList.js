@@ -8,7 +8,7 @@ import MasonryViewModel from "../ViewModel/MasonryViewModel";
 import MessageModel from "../Model/MessageModel";
 import Message from "../Message/Message";
 
-const DATA_NUMBER = 10;
+const DATA_NUMBER = 100;
 
 class DemoList extends React.PureComponent {
   constructor(props) {
@@ -18,8 +18,8 @@ class DemoList extends React.PureComponent {
       moreIndex: 0,
     };
 
-    this.loadTopCount = 10;
-    this.loadBottomCount = 10;
+    this.loadTopCount = 2;
+    this.loadBottomCount = 2;
 
     this.fakeDataList = this._fakeDataList();
     this.fakeDataListTwo = this._fakeDataList();
@@ -52,9 +52,9 @@ class DemoList extends React.PureComponent {
       cellCache: this._cache
     });
     this.viewModel.onLoadMoreTop(this.loadMoreTop);
-    this.viewModel.onLoadMoreBottom(this.loadMoreBottom);
-    this.viewModelTwo.onLoadMoreTop(this.loadMoreTopTwo);
-    this.viewModelTwo.onLoadMoreBottom(this.loadMoreBottomTwo);
+     this.viewModel.onLoadMoreBottom(this.loadMoreBottom);
+    // this.viewModelTwo.onLoadMoreTop(this.loadMoreTopTwo);
+    // this.viewModelTwo.onLoadMoreBottom(this.loadMoreBottomTwo);
     this.setState({isLoading: false});
   }
 
@@ -78,7 +78,7 @@ class DemoList extends React.PureComponent {
     if (this.loadTopCount > 0) {
       const res = this._generateMoreItems(10);
       for (let i = 0; i < res.length; i++) {
-        this.viewModel.addTop(res[i]) ;
+        this.viewModel.addTop(res[i]);
       }
       this.loadTopCount--;
     }
@@ -155,6 +155,29 @@ class DemoList extends React.PureComponent {
     );
   }
 
+  static cellRenderNonVirtualized({item, index, removeCallback}) {
+    const mess = new MessageModel({
+      id: item.itemId,
+      userAvatarUrl: item.avatar,
+      userName: item.userName,
+      messageContent: item.msgContent,
+      sentTime: item.timestamp,
+      isMine: false,
+      onRemoveItem: removeCallback,
+    });
+    return (
+      <Message id={mess.getItemId()}
+               key={mess.getItemId()}
+               index={index}
+               userAvatarUrl={mess.getUserAvatarUrl}
+               userName={mess.getUserName}
+               messageContent={mess.getMessageContent}
+               sentTime={mess.getSentTime}
+               isMine={mess.isMine}
+               onRemoveItem={mess.onRemoveCallBack}/>
+    );
+  }
+
   _isInRange = function (index: number, startIndex: number, endIndex: number): boolean {
     return index >= startIndex && index <= endIndex;
   };
@@ -193,9 +216,14 @@ class DemoList extends React.PureComponent {
           Add new item at
         </button>
 
+        <button onClick={() => {
+          this.viewModel.updateData(this._fakeDataList())
+        }}>refresh data
+        </button>
+
         <div style={{display: 'flex', margin: '20px', justifyContent: 'space-around'}}>
           <button onClick={() => {
-            this.viewModel.scrollToSpecialItem('id_2')
+            this.viewModel.scrollToSpecialItem('id_30')
           }}> Scroll To
           </button>
 
@@ -257,19 +285,19 @@ class DemoList extends React.PureComponent {
                viewModel={this.viewModel}
                cellRenderer={DemoList.cellRenderer}
                numOfOverscan={3}
+               isVirtualized={true}
                isStartAtBottom={true}/>
     )
   };
 
   _renderListTwo = () => {
     return (
-      <Masonry height={500}
-               ref={this.masonryTwo}
+      <Masonry ref={this.masonryTwo}
                style={{marginTop: "10px", borderRadius: '5px'}}
                id={'MasonryTwo'}
                viewModel={this.viewModelTwo}
-               cellRenderer={DemoList.cellRenderer}
-               numOfOverscan={3}
+               cellRenderer={DemoList.cellRenderNonVirtualized}
+               isVirtualized={false}
                isStartAtBottom={true}/>
     )
   };
@@ -284,7 +312,7 @@ class DemoList extends React.PureComponent {
           <div style={{display: 'flex', justifyContent: 'space-around'}}>
             <div>
               {this._renderControlView()}
-              {this._renderList()}
+
             </div>
             <div>
               {this._renderControlViewTwo()}

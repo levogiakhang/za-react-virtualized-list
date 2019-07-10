@@ -12,7 +12,7 @@ class CellMeasurerViewModel {
     if (this._isChangedHeight()) {
       const oldHeightCache = this._oldHeight;
       this._oldHeight = this._newHeight;
-      this.model.onChangedHeight(this.model.id, this._newHeight, oldHeightCache);
+      this.model.onChangedHeight(this.model.id, oldHeightCache, this._newHeight);
     }
   };
 

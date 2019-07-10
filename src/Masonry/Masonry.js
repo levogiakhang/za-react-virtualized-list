@@ -13,11 +13,15 @@ type Props = {
   className?: string,
   id?: ?string,
   style?: mixed,
-  height: number,
-  numOfOverscan: number,
+  width?: number,
+  minWidth?: number,
+  height?: number,
+  minHeight?: number,
+  numOfOverscan?: number,
   viewModel: any,
   cellRenderer: any,
   isStartAtBottom?: boolean,
+  isVirtualized: boolean,
   hideScrollToBottomBtn?: boolean
 };
 
@@ -26,7 +30,10 @@ let LOAD_MORE_BOTTOM_TRIGGER_POS = 0;
 
 class Masonry extends React.Component<Props> {
   static defaultProps = {
+    width: 500,
+    minWidth: 500,
     height: 500,
+    minHeight: 500,
     style: {marginTop: "10px", borderRadius: '5px'},
     id: 'Masonry',
     numOfOverscan: 3,
@@ -48,7 +55,7 @@ class Masonry extends React.Component<Props> {
     // Count number of render called.
     this.firstLoadingCount = 0;
     // Trigger is the first loading.
-    this.isFirstLoading = true;
+    this.isFirstLoadingDone = false;
     this.isLoadingTop = false;
     this.isLoadingBottom = false;
     this.preventLoadTop = true;
@@ -90,7 +97,13 @@ class Masonry extends React.Component<Props> {
     this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
     this.scrollToTop = this.scrollToTop.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
-    this.initialize();
+
+    if(this.props.isVirtualized) {
+      this.initialize();
+    } else {
+      this.estimateTotalHeight = this._getEstimatedTotalHeight();
+      this.oldEstimateTotalHeight = this.estimateTotalHeight;
+    }
   }
 
   initialize() {
@@ -113,7 +126,7 @@ class Masonry extends React.Component<Props> {
   }
 
   clear() {
-    if(this.itemCache) {
+    if (this.itemCache) {
       this.itemCache.clear();
     }
   }
@@ -126,20 +139,20 @@ class Masonry extends React.Component<Props> {
     if (this.parentRef !== undefined) {
       this.btnScrollBottomPos.top = this.parentRef.current.offsetTop + height - 50;
     }
-    console.log(data);
     this._updateItemsPosition();
-    console.log(this.itemCache.getIndexMap);
+    console.log(data);
+    console.log(this.itemCache.getItemsMap);
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this._onResize);
   }
 
-  onChildrenChangeHeight(itemId: string, newHeight: number, oldHeight: number) {
+  onChildrenChangeHeight(itemId: string, oldHeight: number, newHeight: number) {
     if (this.itemCache.getHeight(itemId) !== newHeight) {
       const curItem = this.firstItemInViewport.itemId;
       const dis = this.firstItemInViewport.disparity;
-      if (!this.isFirstLoading && !this.itemCache.isItemRendered(itemId)) {
+      if (this.isFirstLoadingDone && !this.itemCache.isItemRendered(itemId)) {
         this.firstItemInViewportBeforeDebut = {curItem, dis};
         this.flat = this.itemCache.getIndex(this.oldLastItemBeforeDebut) >= this.itemCache.getIndex(itemId);
         this.isDebut = true;
@@ -157,27 +170,29 @@ class Masonry extends React.Component<Props> {
   }
 
   onRemoveItem(itemId: string) {
-    const data = this.viewModel.getData;
-    const itemIndex = this.itemCache.getIndex(itemId);
+    if (this.props.isVirtualized) {
+      const data = this.viewModel.getData;
+      const itemIndex = this.itemCache.getIndex(itemId);
 
-    if (itemIndex !== NOT_FOUND) {
-      const itemHeight = this.itemCache.getRealHeight(itemId);
+      if (itemIndex !== NOT_FOUND) {
+        const itemHeight = this.itemCache.getRealHeight(itemId);
 
-      // remove an item means this item has new height equals 0
-      this._updateItemsOnChangedHeight(itemId, 0);
-      // Remove item on data list, rendered maps and position maps
-      this.viewModel.deleteItem(itemIndex);
+        // remove an item means this item has new height equals 0
+        this._updateItemsOnChangedHeight(itemId, 0);
+        // Remove item on data list, rendered maps and position maps
+        this.viewModel.deleteItem(itemIndex);
 
-      // Update index to id map after remove an item.
-      this._updateMapIndex(itemIndex - 1, data.length);
-      this.itemCache.getIndexMap.delete(data.length);
+        // Update index to id map after remove an item.
+        this._updateMapIndex(itemIndex - 1, data.length);
+        this.itemCache.getIndexMap.delete(data.length);
 
-      // Update the map
-      this._updateItemIndex(itemIndex);
-      this.itemCache.deleteItem(itemId);
+        // Update the map
+        this._updateItemIndex(itemIndex);
+        this.itemCache.deleteItem(itemId);
 
-      this._updateEstimatedHeight(-itemHeight);
-      this._updateOldData();
+        this._updateEstimatedHeight(-itemHeight);
+        this._updateOldData();
+      }
     }
   }
 
@@ -205,14 +220,20 @@ class Masonry extends React.Component<Props> {
   }
 
   render() {
+    console.log(this.estimateTotalHeight, this._getEstimatedTotalHeight());
+    console.log(this.itemCache.getRenderedMap)
     const {
       className,
       id,
+      width,
+      minWidth,
       height,
+      minHeight,
       style,
       isScrolling,
       isStartAtBottom,
-      cellRenderer
+      cellRenderer,
+      isVirtualized
     } = this.props;
 
     const data = this.viewModel.getData;
@@ -220,116 +241,181 @@ class Masonry extends React.Component<Props> {
     const {scrollTop} = this.state;
     const removeCallback = this.viewModel.onRemoveItem;
 
-    const curItem = this._getItemIdFromPosition(scrollTop);
-    this.firstItemInViewport = {
-      itemId: curItem,
-      disparity: scrollTop - this.itemCache.getPosition(curItem)
-    };
+    if (isVirtualized) {
+      const curItem = this._getItemIdFromPosition(scrollTop);
+      this.firstItemInViewport = {
+        itemId: curItem,
+        disparity: scrollTop - this.itemCache.getPosition(curItem)
+      };
 
-    // trigger load more top
-    if (
-      scrollTop < LOAD_MORE_TOP_TRIGGER_POS &&
-      !this.isFirstLoading &&
-      !this.isLoadingTop &&
-      !this.preventLoadTop
-    ) {
-      if (typeof this.viewModel.getLoadMoreTopCallBack === 'function') {
-        this.isLoadingTop = true;
-        this.firstItemInViewportBeforeLoadTop = {
-          itemId: curItem,
-          disparity: scrollTop - this.itemCache.getPosition(curItem)
-        };
-        this.viewModel.getLoadMoreTopCallBack();
-      } else {
-        console.warn("loadMoreTopFunc callback is not a function")
+      // trigger load more top
+      if (
+        scrollTop < LOAD_MORE_TOP_TRIGGER_POS &&
+        this.isFirstLoadingDone &&
+        !this.isLoadingTop &&
+        !this.preventLoadTop
+      ) {
+        if (typeof this.viewModel.getLoadMoreTopCallBack === 'function') {
+          this.isLoadingTop = true;
+          this.firstItemInViewportBeforeLoadTop = {
+            itemId: curItem,
+            disparity: scrollTop - this.itemCache.getPosition(curItem)
+          };
+          this.viewModel.getLoadMoreTopCallBack();
+          this._updateEstimatedHeight(this._getEstimatedTotalHeight() - this.oldEstimateTotalHeight);
+        } else {
+          console.warn("loadMoreTopFunc callback is not a function")
+        }
+        console.log('============load top===============');
       }
-      console.log('============load top===============');
-    }
 
-    // trigger load more bottom
-    LOAD_MORE_BOTTOM_TRIGGER_POS = this.estimateTotalHeight - height - 2;
-    if (
-      scrollTop >= LOAD_MORE_BOTTOM_TRIGGER_POS &&
-      !this.isFirstLoading &&
-      !this.isLoadingBottom &&
-      !this.preventLoadBottom
-    ) {
-      if (typeof this.viewModel.getLoadMoreBottomCallBack === 'function') {
-        this.isLoadingBottom = true;
-        this.viewModel.getLoadMoreBottomCallBack();
-      } else {
-        console.warn("loadMoreBottomFunc callback is not a function")
+      // trigger load more bottom
+      LOAD_MORE_BOTTOM_TRIGGER_POS = this.estimateTotalHeight - height - 2;
+      if (
+        scrollTop >= LOAD_MORE_BOTTOM_TRIGGER_POS &&
+        this.isFirstLoadingDone &&
+        !this.isLoadingBottom &&
+        !this.preventLoadBottom
+      ) {
+        if (typeof this.viewModel.getLoadMoreBottomCallBack === 'function') {
+          this.isLoadingBottom = true;
+          this.viewModel.getLoadMoreBottomCallBack();
+          this._updateEstimatedHeight(this._getEstimatedTotalHeight() - this.oldEstimateTotalHeight);
+        } else {
+          console.warn("loadMoreBottomFunc callback is not a function")
+        }
       }
-    }
 
-    this._updateMapOnAddData();
+      this._updateMapOnAddData();
 
-    // number of items in viewport + overscan top + overscan bottom.
-    const itemsInBatch = this._getItemsInBatch(scrollTop);
+      // number of items in viewport + overscan top + overscan bottom.
+      const itemsInBatch = this._getItemsInBatch(scrollTop);
 
-    if (isStartAtBottom) {
-      this._scrollToBottomAtFirst(itemsInBatch);
+      if (isStartAtBottom && !this.isFirstLoadingDone) {
+        this._scrollToBottomAtFirst(itemsInBatch.length);
+      } else if (!isStartAtBottom && !this.isFirstLoadingDone) {
+        this.preventLoadTop = true;
+        this.isFirstLoadingDone = true;
+      }
+
+      // array item is rendered in the batch.
+      const children = [];
+      for (let i = 0; i <= itemsInBatch.length - 1; i++) {
+        const index = this.itemCache.getIndex(itemsInBatch[i]);
+        if (!!data[index]) {
+          const cellMeasurer = new CellMeasurerModel({
+            id: data[index].itemId,
+            cache: cellCache,
+            isVirtualized: isVirtualized,
+            position: {top: this.itemCache.getPosition(itemsInBatch[i]), left: 0},
+          });
+          children.push(
+            <CellMeasurer id={cellMeasurer.getItemId()}
+                          key={cellMeasurer.getItemId()}
+                          cache={cellMeasurer.getCache}
+                          isVirtualized={cellMeasurer.getIsVirtualized}
+                          onChangedHeight={this.onChildrenChangeHeight}
+                          position={cellMeasurer.getPosition}>
+              {typeof cellRenderer === 'function' ? cellRenderer({index, data, removeCallback}) : null}
+            </CellMeasurer>
+          );
+        }
+      }
+
+      return (
+        <div className={'masonry-parent'}
+             ref={this.parentRef}>
+          <div className={className}
+               id={id}
+               onScroll={this._onScroll}
+               style={{
+                 backgroundColor: 'cornflowerblue',
+                 boxSizing: 'border-box',
+                 overflowX: 'hidden',
+                 overflowY: this.estimateTotalHeight < height ? 'hidden' : 'auto',
+                 width: width,
+                 minWidth: minWidth,
+                 height: height,
+                 minHeight: minHeight,
+                 position: 'relative',
+                 willChange: 'auto',
+                 ...style
+               }}>
+            <div className="innerScrollContainer"
+                 style={{
+                   width: '100%',
+                   height: this.estimateTotalHeight,
+                   maxWidth: '100%',
+                   maxHeight: this.estimateTotalHeight,
+                   overflow: 'hidden',
+                   position: 'relative',
+                   pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+                 }}>
+              {children}
+            </div>
+          </div>
+        </div>
+      );
     } else {
-      this.preventLoadTop = true;
-      this.isFirstLoading = false;
-    }
-
-    // array item is rendered in the batch.
-    const children = [];
-    for (let i = 0; i <= itemsInBatch.length - 1; i++) {
-      const index = this.itemCache.getIndex(itemsInBatch[i]);
-      if (!!data[index]) {
+      if (isStartAtBottom && !this.isFirstLoadingDone) {
+        this._scrollToBottomAtFirst();
+      } else if (!isStartAtBottom && !this.isFirstLoadingDone) {
+        this.preventLoadTop = true;
+        this.isFirstLoadingDone = true;
+      }
+      const children = data.map((item, index) => {
         const cellMeasurer = new CellMeasurerModel({
-          id: data[index].itemId,
+          id: item.itemId,
           cache: cellCache,
-          position: {top: this.itemCache.getPosition(itemsInBatch[i]), left: 0},
+          isVirtualized: isVirtualized,
+          position: {top: 0, left: 0},
         });
-        children.push(
+        return (
           <CellMeasurer id={cellMeasurer.getItemId()}
                         key={cellMeasurer.getItemId()}
                         cache={cellMeasurer.getCache}
+                        isVirtualized={cellMeasurer.getIsVirtualized}
                         onChangedHeight={this.onChildrenChangeHeight}
                         position={cellMeasurer.getPosition}>
-            {typeof cellRenderer === 'function' ? cellRenderer({index, data, removeCallback}) : null}
+            {typeof cellRenderer === 'function' ? cellRenderer({item, index, removeCallback}) : null}
           </CellMeasurer>
         );
-      }
-    }
-
-    return (
-      <div className={'masonry-parent'}
-           ref={this.parentRef}>
-        <div className={className}
-             id={id}
-             onScroll={this._onScroll}
-             style={{
-               backgroundColor: 'cornflowerblue',
-               boxSizing: 'border-box',
-               overflowX: 'hidden',
-               overflowY: this.estimateTotalHeight < height ? 'hidden' : 'auto',
-               width: 'auto',
-               minWidth: '550px',
-               minHeight: '500px',
-               height: height,
-               position: 'relative',
-               willChange: 'auto',
-               ...style
-             }}>
-          <div className="innerScrollContainer"
+      });
+      return (
+        <div className={'masonry-parent'}
+             ref={this.parentRef}>
+          <div className={className}
+               id={id}
+               onScroll={this._onScroll}
                style={{
-                 width: '100%',
-                 height: this.estimateTotalHeight,
-                 maxWidth: '100%',
-                 maxHeight: this.estimateTotalHeight,
-                 overflow: 'hidden',
+                 backgroundColor: 'cornflowerblue',
+                 boxSizing: 'border-box',
+                 overflowX: 'hidden',
+                 overflowY: this.estimateTotalHeight < height ? 'hidden' : 'auto',
+                 width: width,
+                 minWidth: minWidth,
+                 height: height,
+                 minHeight: minHeight,
                  position: 'relative',
-                 pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+                 willChange: 'auto',
+                 ...style
                }}>
-            {children}
+            <div className="innerScrollContainer"
+                 style={{
+                   width: '100%',
+                   height: this.estimateTotalHeight,
+                   maxWidth: '100%',
+                   maxHeight: this.estimateTotalHeight,
+                   overflow: 'hidden',
+                   position: 'relative',
+                   pointerEvents: isScrolling ? 'none' : '', // property defines whether or not an element reacts to pointer events.
+                 }}>
+              {children}
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   componentDidUpdate() {
@@ -348,7 +434,7 @@ class Masonry extends React.Component<Props> {
       this.isLoadingBottom = false;
     }
 
-    if (scrollTop < this.estimateTotalHeight - height - 200 && !this.isFirstLoading) {
+    if (scrollTop < this.estimateTotalHeight - height - 200 && this.isFirstLoadingDone) {
       this.preventLoadBottom = false;
     }
 
@@ -361,7 +447,8 @@ class Masonry extends React.Component<Props> {
     // check add or remove item above
     // remove
     if (this.oldDataLength !== data.length) {
-      if(this.oldDataLength < data.length && this.isLoadingTop && !this.isDebut) {
+
+      if (this.oldDataLength < data.length && this.isLoadingTop && !this.isDebut) {
         console.log(this.firstItemInViewportBeforeLoadTop);
         this._scrollToItem(
           this.firstItemInViewportBeforeLoadTop.itemId,
@@ -375,19 +462,31 @@ class Masonry extends React.Component<Props> {
   /*
    * Scroll to bottom when the first loading
    */
-  _scrollToBottomAtFirst(itemsInBatch) {
+  _scrollToBottomAtFirst(numOfItemsInBatch = 0) {
     const data = this.viewModel.getData;
-    if (
-      this.masonry !== undefined &&
-      this.isFirstLoading === true &&
-      !!data.length
-    ) {
-      this.firstLoadingCount++;
-      const lastItemId = this._getItemIdFromIndex(data.length - 1);
-      this._scrollToItem(lastItemId, this.itemCache.getHeight(lastItemId));
-      if (this.firstLoadingCount >= itemsInBatch.length + 8) {
-        console.log('reverse done');
-        this.isFirstLoading = false;
+    const {isVirtualized} = this.props;
+    if (isVirtualized) {
+      if (
+        !!this.masonry &&
+        !this.isFirstLoadingDone &&
+        !!data.length
+      ) {
+        this.firstLoadingCount++;
+        const lastItemId = this._getItemIdFromIndex(data.length - 1);
+        this._scrollToItem(lastItemId, this.itemCache.getHeight(lastItemId));
+        if (this.firstLoadingCount >= numOfItemsInBatch + 10) {
+          console.log('reverse done');
+          this.isFirstLoadingDone = true;
+        }
+      }
+    } else {
+      if (
+        this.masonry !== undefined &&
+        !this.isFirstLoadingDone
+      ) {
+
+        this.masonry.firstChild.scrollIntoView(false);
+        this.isFirstLoadingDone = true;
       }
     }
   }

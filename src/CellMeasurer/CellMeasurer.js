@@ -29,13 +29,15 @@ export default class CellMeasurer extends React.PureComponent<CellMeasurerModel>
   }
 
   render() {
-    const { children, id, position: { top, left } } = this.props;
+    const { children, id, position: { top, left }, isVirtualized } = this.props;
 
     return (
       <div id={id}
            style={{
-             position: 'absolute',
+             display: 'block',
+             position: isVirtualized ? 'absolute' : 'relative',
              top: top,
+             overflow: 'auto',
              left: left,
              width: '100%'
            }}>
