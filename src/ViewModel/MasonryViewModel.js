@@ -80,13 +80,13 @@ class MasonryViewModel {
 
   addTop(item) {
     if (Array.isArray(this.data)) {
-      this.data.unshift(item);
+      this.onAddItem(0, item);
     }
   }
 
   addBottom(item) {
     if (Array.isArray(this.data)) {
-      this.data.push(item);
+      this.onAddItem(this.data.length, item);
     }
   }
 
