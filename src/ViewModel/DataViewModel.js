@@ -13,7 +13,7 @@ class DataViewModel {
 
   init() {
     if (Array.isArray(this.data)) {
-      data.forEach((item) => {
+      this.data.forEach((item) => {
         this.dataMap.set(item.itemId, item);
       })
     } else {
@@ -57,13 +57,13 @@ class DataViewModel {
     }
   }
 
-  deleleItem(index: number) {
+  deleteItem(index: number, deleteCount: number = 1) {
     if (
       Array.isArray(this.data) &&
       this._isValidIndex(index)
     ) {
-      this.data.splice(index, 1);
       this.dataMap.delete(this.data[index].itemId);
+      this.data.splice(index, deleteCount);
     }
   }
 
@@ -102,10 +102,11 @@ class DataViewModel {
   }
 
   _isValidIndex(index: number): boolean {
+    const rsIndex = parseInt(index);
     return (
-      typeof index === 'number' &&
-      index < this.data.length &&
-      index >= 0
+      typeof rsIndex === 'number' &&
+      rsIndex <= this.data.length &&
+      rsIndex >= 0
     );
   }
 
@@ -113,7 +114,7 @@ class DataViewModel {
     return this.dataMap.has(id);
   };
 
-  getData() {
+  get getData() {
     return this.data;
   }
 

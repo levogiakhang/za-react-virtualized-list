@@ -7,6 +7,7 @@ import { ListMessageExample } from "../utils/ListMessageExample";
 import MasonryViewModel from "../ViewModel/MasonryViewModel";
 import MessageModel from "../Model/MessageModel";
 import Message from "../Message/Message";
+import DataViewModel from "../ViewModel/DataViewModel";
 
 const DATA_NUMBER = 10;
 
@@ -41,13 +42,14 @@ class DemoList extends React.PureComponent {
   componentDidMount(): void {
     this.masonry = React.createRef();
     this.masonryTwo = React.createRef();
+    this.dataList = new DataViewModel(this.fakeDataListTwo);
     this.viewModelVirtualized = new MasonryViewModel({
       data: this.fakeDataList,
       masonry: this.masonry,
       cellCache: this._cache
     });
     this.viewModel = new MasonryViewModel({
-      data: this.fakeDataListTwo,
+      data: this.dataList,
       masonry: this.masonryTwo,
       cellCache: this._cache
     });
@@ -67,7 +69,7 @@ class DemoList extends React.PureComponent {
   }
 
   handleChangeIndex(e) {
-    if (this._isInRange(e.target.value, 0, this.fakeDataList.length)) {
+    if (this._isInRange(e.target.value, 0, this.fakeDataListTwo.length)) {
       this.setState({moreIndex: e.target.value});
     } else {
       alert('OUT OF RANGE');
@@ -312,11 +314,11 @@ class DemoList extends React.PureComponent {
           <div style={{display: 'flex', justifyContent: 'space-around'}}>
             <div>
               {this._renderVLControlView()}
-              {this._renderVirtualizedList()}
+              {/*{this._renderVirtualizedList()}*/}
             </div>
             <div>
               {this._renderControlView()}
-              {/*{this._renderList()}*/}
+              {this._renderList()}
             </div>
           </div>
         </div>

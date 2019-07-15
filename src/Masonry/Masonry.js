@@ -102,12 +102,12 @@ class Masonry extends React.Component<Props> {
     this._updateMapOnAddData = this._updateMapOnAddData.bind(this);
     this.scrollToTop = this.scrollToTop.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
+    this._addStaticItemToChildren = this._addStaticItemToChildren.bind(this);
     this.initialize();
   }
 
   initialize() {
-    const {isVirtualized, cellRenderer, removeCallback} = this.props;
-    const cellCache = this.viewModel.getCellCache;
+    const {isVirtualized} = this.props;
     const data = this.viewModel.getData;
     const defaultHeight = this.viewModel.getCellCache.defaultHeight;
     this._updateOldData();
@@ -115,22 +115,7 @@ class Masonry extends React.Component<Props> {
       data.map((item, index) => {
         this.itemCache.updateItemOnMap(item.itemId, data.indexOf(item), defaultHeight, 0);
         if (!isVirtualized) {
-          const cellMeasurer = new CellMeasurerModel({
-            id: item.itemId,
-            cache: cellCache,
-            isVirtualized: isVirtualized,
-            position: {top: 0, left: 0},
-          });
-          this.children.push(
-            <CellMeasurer id={cellMeasurer.getItemId()}
-                          key={cellMeasurer.getItemId()}
-                          cache={cellMeasurer.getCache}
-                          isVirtualized={cellMeasurer.getIsVirtualized}
-                          onChangedHeight={this.onChildrenChangeHeight}
-                          position={cellMeasurer.getPosition}>
-              {typeof cellRenderer === 'function' ? cellRenderer({item, index, removeCallback}) : null}
-            </CellMeasurer>
-          );
+          this._addStaticItemToChildren(index, item);
         }
       });
       this._updateMapIndex(0, data.length);
@@ -140,7 +125,7 @@ class Masonry extends React.Component<Props> {
     if (defaultHeight === undefined) {
       this.cache = new CellMeasurerCache({defaultHeight: DEFAULT_HEIGHT});
     }
-    this.itemsInBatch = [...data];
+    //this.itemsInBatch = [...data];
     this.estimateTotalHeight = this._getEstimatedTotalHeight();
     this.oldEstimateTotalHeight = this.estimateTotalHeight;
   }
@@ -185,31 +170,19 @@ class Masonry extends React.Component<Props> {
   }
 
   onAddItem(index, item) {
-    const {data} = this.viewModel;
+    const data = this.viewModel.getData;
+    const newItemPos = parseInt(index) === 0 ?
+      0 :
+      this.itemCache.getPosition(data[index - 1].itemId) + this.itemCache.getHeight(data[index - 1].itemId);
 
     this.viewModel.insertItem(index, item);
-    this.itemCache.updateItemOnMap(item.itemId, data.indexOf(item), this.viewModel.getCellCache.defaultHeight, 0);
+    this.itemCache.updateItemOnMap(item.itemId, data.indexOf(item), this.viewModel.getCellCache.defaultHeight, newItemPos);
     this._updateMapIndex(index - 1, data.length);
+    this._updateItemIndex(index - 1);
 
-    const {isVirtualized, cellRenderer, removeCallback} = this.props;
+    const {isVirtualized} = this.props;
     if (!isVirtualized) {
-      const cellMeasurer = new CellMeasurerModel({
-        id: item.itemId,
-        cache: this.viewModel.getCellCache,
-        isVirtualized: isVirtualized,
-        position: {top: 0, left: 0},
-      });
-      // const index = this.itemCache.getIndex;
-      this.children.splice(index, 0,
-        <CellMeasurer id={cellMeasurer.getItemId()}
-                      key={cellMeasurer.getItemId()}
-                      cache={cellMeasurer.getCache}
-                      isVirtualized={cellMeasurer.getIsVirtualized}
-                      onChangedHeight={this.onChildrenChangeHeight}
-                      position={cellMeasurer.getPosition}>
-          {typeof cellRenderer === 'function' ? cellRenderer({item, index, removeCallback}) : null}
-        </CellMeasurer>
-      );
+      this._addStaticItemToChildren(index, item)
     }
 
     this._updateEstimatedHeight(this.viewModel.getCellCache.defaultHeight);
@@ -237,6 +210,8 @@ class Masonry extends React.Component<Props> {
 
       this._updateEstimatedHeight(-itemHeight);
       this._updateOldData();
+
+      this.children.splice(itemIndex, 1);
     }
   }
 
@@ -283,12 +258,13 @@ class Masonry extends React.Component<Props> {
     const {scrollTop} = this.state;
     const removeCallback = this.viewModel.onRemoveItem;
 
+    const curItem = this._getItemIdFromPosition(scrollTop);
+    this.firstItemInViewport = {
+      itemId: curItem,
+      disparity: scrollTop - this.itemCache.getPosition(curItem)
+    };
+
     if (isVirtualized) {
-      const curItem = this._getItemIdFromPosition(scrollTop);
-      this.firstItemInViewport = {
-        itemId: curItem,
-        disparity: scrollTop - this.itemCache.getPosition(curItem)
-      };
 
       // trigger load more top
       if (
@@ -408,7 +384,7 @@ class Masonry extends React.Component<Props> {
       }
 
       if (!this.isEqual(this.itemsInBatch, this.oldItemsInBatch)) {
-        this.oldItemsInBatch = [...this.itemsInBatch];
+        //this.oldItemsInBatch = [...this.itemsInBatch];
 
       }
 
@@ -451,7 +427,7 @@ class Masonry extends React.Component<Props> {
 
   componentDidUpdate() {
     const data = this.viewModel.getData;
-    const {height} = this.props;
+    const {height, isVirtualized} = this.props;
     const {scrollTop} = this.state;
 
     if (scrollTop > LOAD_MORE_TOP_TRIGGER_POS) {
@@ -590,9 +566,31 @@ class Masonry extends React.Component<Props> {
       });
       this._updateMapIndex(0, data.length);
       this._updateItemsPosition();
-      console.log(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity);
       this._scrollToItem(this.firstItemInViewport.itemId, this.firstItemInViewport.disparity)
     }
+  }
+
+  _addStaticItemToChildren(index, item) {
+    const {isVirtualized, cellRenderer} = this.props;
+
+    const cellMeasurer = new CellMeasurerModel({
+      id: item.itemId,
+      cache: this.viewModel.getCellCache,
+      isVirtualized: isVirtualized,
+      position: {top: 0, left: 0},
+    });
+    // const index = this.itemCache.getIndex;
+    const removeCallback = this.viewModel.onRemoveItem;
+    this.children.splice(index, 0,
+      <CellMeasurer id={cellMeasurer.getItemId()}
+                    key={cellMeasurer.getItemId()}
+                    cache={cellMeasurer.getCache}
+                    isVirtualized={cellMeasurer.getIsVirtualized}
+                    onChangedHeight={this.onChildrenChangeHeight}
+                    position={cellMeasurer.getPosition}>
+        {typeof cellRenderer === 'function' ? cellRenderer({item, index, removeCallback}) : null}
+      </CellMeasurer>
+    );
   }
 
   _onScroll() {
@@ -678,6 +676,7 @@ class Masonry extends React.Component<Props> {
     const data = this.viewModel.getData;
     if (!!data.length) {
       let itemId;
+      if (startIndex < 0) startIndex = 0;
       for (let i = startIndex; i <= data.length - 1; i++) {
         itemId = this._getItemIdFromIndex(i);
         this.itemCache.updateItemOnMap(itemId, i, this.itemCache.getHeight(itemId), this.itemCache.getPosition(itemId));
@@ -719,7 +718,6 @@ class Masonry extends React.Component<Props> {
   _updateItemsPositionFromSpecifiedItem(itemId: string) {
     const data = this.viewModel.getData;
     if (!!data.length) {
-      // console.log('-----------------------');
       let currentItemId = itemId;
       const currentIndex = this.itemCache.getIndex(itemId);
 

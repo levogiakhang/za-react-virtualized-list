@@ -71,11 +71,7 @@ class MasonryViewModel {
   }
 
   isIdAlready(id: string): boolean {
-    if (Array.isArray(this.data)) {
-      return this.data.find((item) => {
-        return item.itemId === id;
-      }) !== undefined
-    }
+    this.data._isIdAlready(id);
   };
 
   addTop(item) {
@@ -91,19 +87,15 @@ class MasonryViewModel {
   }
 
   insertItem(index: number, item) {
-    if (Array.isArray(this.data)) {
-      this.data.splice(index, 0, item);
-    }
+    this.data.insertItem(index, item);
   }
 
   deleteItem(index: number, deleteCount: number = 1) {
-    if (Array.isArray(this.data)) {
-      this.data.splice(index, deleteCount);
-    }
+    this.data.deleteItem(index, deleteCount);
   }
 
   updateData(data) {
-    if(this.masonry) {
+    if (this.masonry) {
       this.masonry.current.clear();
       this.setData(data);
       this.masonry.current.initialize();
@@ -113,7 +105,7 @@ class MasonryViewModel {
 
   // region GET-SET
   get getData() {
-    return this.data;
+    return this.data.getData;
   }
 
   get getMasonry() {
